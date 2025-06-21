@@ -257,7 +257,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
       size: 80,
     }),
     columnHelper.accessor('tagColor', {
-      header: 'Color',
+      header: 'Tag Color',
       cell: ({ getValue }) => <span className="dark:text-gray-300">{getValue() || 'Not specified'}</span>,
       size: 100,
     }),

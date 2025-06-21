@@ -489,10 +489,10 @@ export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, existingTag
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-0.5">
-                          Color
+                          Tag Color
                         </label>
                         <input
-                          type="text"
+                          type="color"
                           value={form.tagColor}
                           onChange={(e) => handleInputChange(idx, 'tagColor', e.target.value)}
                           className="w-full px-2 py-1 rounded-lg border border-gray-300 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:bg-zinc-900 dark:text-gray-200 text-xs"

@@ -164,10 +164,13 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
       };
       break;
     case 'DELETE_CAMP':
+      const updatedCamps = state.camps.filter(c => c !== action.payload);
       newState = {
         ...state,
-        camps: state.camps.filter(c => c !== action.payload),
-        animals: state.animals.map(a => a.camp === action.payload ? { ...a, camp: state.camps[0] || '' } : a) // reassign to first camp or empty
+        camps: updatedCamps,
+        animals: state.animals.map(a => 
+          a.camp === action.payload ? { ...a, camp: updatedCamps[0] || '' } : a
+        )
       };
       break;
     case 'LOAD_DATA':

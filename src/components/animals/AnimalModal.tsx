@@ -1,0 +1,332 @@
+import React, { useState } from 'react';
+import { Animal, HistoryEvent } from '../../types';
+import { calculateAge, formatDate, formatCurrency, generateId } from '../../utils/helpers';
+import { X, Calendar, DollarSign, AlertTriangle, Plus } from 'lucide-react';
+
+interface AnimalModalProps {
+  animal: Animal;
+  onClose: () => void;
+  onUpdate: (animal: Animal) => void;
+  allAnimals: Animal[];
+}
+
+export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpdate, allAnimals }) => {
+  const [activeTab, setActiveTab] = useState<'profile' | 'sell' | 'deceased' | 'history'>('profile');
+  const [sellData, setSellData] = useState({ 
+    price: '', 
+    date: new Date().toISOString().split('T')[0], 
+    location: '' 
+  });
+  const [deceasedData, setDeceasedData] = useState({ 
+    reason: '', 
+    date: new Date().toISOString().split('T')[0] 
+  });
+  const [newEvent, setNewEvent] = useState({ description: '' });
+
+  // Find offspring animals
+  const offspring = allAnimals.filter(a => a.motherTag === animal.tagNumber || a.fatherTag === animal.tagNumber);
+  
+  // Find parent animals
+  const mother = allAnimals.find(a => a.tagNumber === animal.motherTag);
+  const father = allAnimals.find(a => a.tagNumber === animal.fatherTag);
+
+  const handleSell = () => {
+    if (!sellData.price || !sellData.date) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    
+    const updatedAnimal: Animal = {
+      ...animal,
+      status: 'Sold',
+      salePrice: parseFloat(sellData.price),
+      saleDate: sellData.date,
+      history: [...animal.history, {
+        date: new Date().toISOString().split('T')[0],
+        description: `Sold for ${formatCurrency(parseFloat(sellData.price))} on ${formatDate(sellData.date)}`
+      }]
+    };
+    
+    onUpdate(updatedAnimal);
+    onClose();
+  };
+
+  const handleMarkDeceased = () => {
+    if (!deceasedData.reason || !deceasedData.date) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    
+    const updatedAnimal: Animal = {
+      ...animal,
+      status: 'Deceased',
+      deceasedReason: deceasedData.reason,
+      deceasedDate: deceasedData.date,
+      history: [...animal.history, {
+        date: new Date().toISOString().split('T')[0],
+        description: `Deceased - ${deceasedData.reason} on ${formatDate(deceasedData.date)}`
+      }]
+    };
+    
+    onUpdate(updatedAnimal);
+    onClose();
+  };
+
+  const handleAddEvent = () => {
+    if (!newEvent.description) return;
+    
+    const updatedAnimal: Animal = {
+      ...animal,
+      history: [...animal.history, {
+        date: new Date().toISOString().split('T')[0],
+        description: newEvent.description
+      }]
+    };
+    
+    onUpdate(updatedAnimal);
+    setNewEvent({ description: '' });
+  };
+
+  const typeEmojis: Record<string, string> = {
+    Sheep: '🐑',
+    Cattle: '🐄',
+    Pig: '🐷',
+    Other: '🐾'
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-700">
+          <div className="flex items-center space-x-3">
+            <div className="text-2xl">{typeEmojis[animal.type]}</div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Tag #{animal.tagNumber}</h2>
+              <p className="text-gray-600 dark:text-gray-400">{animal.type} • {animal.sex === 'M' ? 'Male' : 'Female'}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+          >
+            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+          </button>
+        </div>
+
+        <div className="border-b border-gray-200 dark:border-zinc-700">
+          <nav className="flex">
+            {[
+              { id: 'profile', label: 'Profile', icon: Calendar },
+              ...(animal.status === 'Active' ? [
+                { id: 'sell', label: 'Mark Sold', icon: DollarSign },
+                { id: 'deceased', label: 'Mark Deceased', icon: AlertTriangle }
+              ] : []),
+              { id: 'history', label: 'History', icon: Plus }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center space-x-2 ${
+                  activeTab === tab.id
+                    ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                <tab.icon className="h-4 w-4" />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 8rem)' }}>
+          {activeTab === 'profile' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600">Age</p>
+                  <p className="font-semibold">{calculateAge(animal.birthdate)}</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600">Birth Date</p>
+                  <p className="font-semibold">{formatDate(animal.birthdate)}</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600">Tag Color</p>
+                  <p className="font-semibold">{animal.tagColor || 'Not specified'}</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600">Status</p>
+                  <p className={`font-semibold ${
+                    animal.status === 'Active' ? 'text-emerald-600' :
+                    animal.status === 'Sold' ? 'text-blue-600' : 'text-red-600'
+                  }`}>{animal.status}</p>
+                </div>
+              </div>
+              
+              {(animal.motherTag || animal.fatherTag) && (
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">Parentage</h4>
+                  {animal.motherTag && <p className="text-sm text-blue-800">Mother: Tag #{animal.motherTag}</p>}
+                  {animal.fatherTag && <p className="text-sm text-blue-800">Father: Tag #{animal.fatherTag}</p>}
+                </div>
+              )}
+
+              {offspring.length > 0 && (
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-purple-900 mb-2">Offspring ({offspring.length})</h4>
+                  <div className="space-y-2">
+                    {offspring.map((child) => (
+                      <div key={child.tagNumber} className="flex justify-between items-center">
+                        <p className="text-sm text-purple-800">
+                          Tag #{child.tagNumber} • {child.type} • {child.sex === 'M' ? 'Male' : 'Female'}
+                        </p>
+                        <p className="text-sm text-purple-600">{calculateAge(child.birthdate)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {animal.status === 'Sold' && animal.salePrice && (
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-green-900 mb-2">Sale Information</h4>
+                  <p className="text-sm text-green-800">Price: {formatCurrency(animal.salePrice)}</p>
+                  <p className="text-sm text-green-800">Date: {formatDate(animal.saleDate!)}</p>
+                </div>
+              )}
+
+              {animal.status === 'Deceased' && (
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-red-900 mb-2">Deceased Information</h4>
+                  <p className="text-sm text-red-800">Reason: {animal.deceasedReason}</p>
+                  <p className="text-sm text-red-800">Date: {formatDate(animal.deceasedDate!)}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'sell' && animal.status === 'Active' && (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Mark as Sold</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sale Price *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={sellData.price}
+                    onChange={(e) => setSellData(prev => ({ ...prev, price: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sale Date *</label>
+                  <input
+                    type="date"
+                    value={sellData.date}
+                    onChange={(e) => setSellData(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <input
+                    type="text"
+                    value={sellData.location}
+                    onChange={(e) => setSellData(prev => ({ ...prev, location: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="Sale location"
+                  />
+                </div>
+                <button
+                  onClick={handleSell}
+                  disabled={!sellData.price || !sellData.date}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                >
+                  Mark as Sold
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'deceased' && animal.status === 'Active' && (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Mark as Deceased</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Reason *</label>
+                  <input
+                    type="text"
+                    value={deceasedData.reason}
+                    onChange={(e) => setDeceasedData(prev => ({ ...prev, reason: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="Reason for death"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                  <input
+                    type="date"
+                    value={deceasedData.date}
+                    onChange={(e) => setDeceasedData(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+                <button
+                  onClick={handleMarkDeceased}
+                  disabled={!deceasedData.reason || !deceasedData.date}
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                >
+                  Mark as Deceased
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'history' && (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Event History</h3>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex space-x-3">
+                  <input
+                    type="text"
+                    value={newEvent.description}
+                    onChange={(e) => setNewEvent({ description: e.target.value })}
+                    className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="Add new event..."
+                  />
+                  <button
+                    onClick={handleAddEvent}
+                    disabled={!newEvent.description}
+                    className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {animal.history.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">No events recorded</p>
+                ) : (
+                  animal.history.map((event, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <p className="text-gray-900">{event.description}</p>
+                        <p className="text-sm text-gray-500">{formatDate(event.date)}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

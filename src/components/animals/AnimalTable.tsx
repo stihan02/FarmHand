@@ -571,8 +571,8 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
           </div>
         </div>
       )}
-        <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="w-full overflow-x-auto">
+        <table className="min-w-full text-xs sm:text-sm divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-700">
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>

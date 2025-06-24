@@ -174,17 +174,17 @@ function AppContent() {
       activeTab={activeTab}
       setActiveTab={setActiveTab}
     >
-      <main className="flex-1 p-4 sm:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
+      <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full">
         {activeTab === 'dashboard' && <StatsCard onOpenAiAssistant={() => setAiOpen(true)} />}
         {activeTab === 'animals' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   Animals ({filteredAnimals.length})
               </h2>
                 <button 
                   onClick={() => setAddAnimalModalOpen(true)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700"
+                  className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700"
                 >
                   Add Animal
                 </button>

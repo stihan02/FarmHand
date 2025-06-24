@@ -127,7 +127,7 @@ export const CampMap: React.FC<CampMapProps> = (props) => {
   };
 
   return (
-    <div className="w-full h-[60vh] sm:h-full relative z-10">
+    <div className="w-full h-[70vh] sm:h-full relative z-10">
       <MapContainer
         center={[41.8919, 12.5110]}
         zoom={6}

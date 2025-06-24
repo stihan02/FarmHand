@@ -1,184 +1,94 @@
 import React, { useState } from 'react';
 import { Animal, HealthRecord } from '../../types';
+import { askHuggingFaceFlanT5 } from '../../utils/helpers';
 
 interface AIAssistantProps {
-  animals: Animal[];
-  onUpdateAnimal: (animalId: string, updates: Partial<Animal>) => void;
+  open?: boolean;
+  setOpen?: (open: boolean) => void;
 }
 
-export const AIAssistant: React.FC<AIAssistantProps> = ({ animals, onUpdateAnimal }) => {
-  const [query, setQuery] = useState('');
+export const AIAssistant: React.FC<AIAssistantProps> = ({ open: controlledOpen, setOpen: setControlledOpen }) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = setControlledOpen || setInternalOpen;
+  const [question, setQuestion] = useState('');
+  const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState<string | null>(null);
 
-  const handleAskAI = async () => {
+  const handleAsk = async () => {
     setLoading(true);
+    setResponse('');
     try {
-      // Here you would integrate with your preferred AI service (e.g., OpenAI, Claude, etc.)
-      // For now, we'll just simulate a response
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Example response based on query keywords
-      let aiResponse = '';
-      if (query.toLowerCase().includes('health')) {
-        aiResponse = generateHealthRecommendations();
-      } else if (query.toLowerCase().includes('genetic')) {
-        aiResponse = analyzeGenetics();
-      } else if (query.toLowerCase().includes('breeding')) {
-        aiResponse = suggestBreedingPairs();
-      } else {
-        aiResponse = "I can help you with health monitoring, genetic analysis, breeding recommendations, and general farm management. Please ask a specific question about these topics.";
-      }
-      
-      setResponse(aiResponse);
-    } catch (error) {
-      setResponse('Sorry, I encountered an error. Please try again.');
+      const result = await askHuggingFaceFlanT5(question);
+      setResponse(result);
+    } catch (err: any) {
+      setResponse('Sorry, there was an error contacting the AI service.');
     } finally {
       setLoading(false);
     }
   };
 
-  const generateHealthRecommendations = () => {
-    const dueForCheckup = animals.filter(animal => {
-      const lastCheckup = animal.health
-        .filter(record => record.type === 'Check-up')
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-      
-      if (!lastCheckup) return true;
-      
-      const lastCheckupDate = new Date(lastCheckup.date);
-      const threeMonthsAgo = new Date();
-      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-      
-      return lastCheckupDate < threeMonthsAgo;
-    });
-
-    if (dueForCheckup.length > 0) {
-      return `The following animals are due for a health check-up:\n${dueForCheckup
-        .map(animal => `- ${animal.type} #${animal.tagNumber} (Last checkup: ${
-          animal.health.find(h => h.type === 'Check-up')?.date || 'Never'
-        })`)
-        .join('\n')}`;
-    }
-
-    return 'All animals are up to date with their health check-ups.';
-  };
-
-  const analyzeGenetics = () => {
-    const breedCounts = animals.reduce((acc, animal) => {
-      if (animal.breed) {
-        acc[animal.breed] = (acc[animal.breed] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
-
-    const analysis = [
-      'Genetic Diversity Analysis:',
-      ...Object.entries(breedCounts).map(([breed, count]) => 
-        `- ${breed}: ${count} animals (${((count / animals.length) * 100).toFixed(1)}%)`
-      )
-    ];
-
-    return analysis.join('\n');
-  };
-
-  const suggestBreedingPairs = () => {
-    const females = animals.filter(a => a.sex === 'F' && a.status === 'Active');
-    const males = animals.filter(a => a.sex === 'M' && a.status === 'Active');
-
-    if (females.length === 0 || males.length === 0) {
-      return 'Not enough animals of both sexes for breeding recommendations.';
-    }
-
-    // Simple breeding pair suggestions (you would want more sophisticated genetic analysis in production)
-    const suggestions = females
-      .slice(0, 3)
-      .map(female => {
-        const male = males.find(m => 
-          m.type === female.type && 
-          m.tagNumber !== female.fatherTag && // Avoid inbreeding
-          !female.offspringTags.some(tag => m.motherTag === tag) // Avoid breeding with offspring
-        );
-
-        if (male) {
-          return `Suggested pair:\n- Female: ${female.type} #${female.tagNumber}\n- Male: ${male.type} #${male.tagNumber}`;
-        }
-        return null;
-      })
-      .filter(Boolean)
-      .join('\n\n');
-
-    return suggestions || 'No suitable breeding pairs found based on current criteria.';
-  };
-
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6">
-      <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">AI Farm Assistant</h2>
-      
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Ask me about health monitoring, genetic analysis, or breeding recommendations
-          </label>
-          <div className="flex space-x-2">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g., Which animals need health check-ups?"
-              className="flex-1 rounded-lg border border-gray-300 dark:border-zinc-700 px-4 py-2 focus:ring-2 focus:ring-blue-500 dark:bg-zinc-800 dark:text-gray-100"
-            />
-            <button
-              onClick={handleAskAI}
-              disabled={loading || !query}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Thinking...' : 'Ask AI'}
-            </button>
+    <>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          position: 'fixed',
+          bottom: 28,
+          right: 28,
+          zIndex: 3000,
+          background: '#2d7d46',
+          color: 'white',
+          border: 'none',
+          borderRadius: '50%',
+          width: 56,
+          height: 56,
+          fontSize: 28,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.18)',
+          cursor: 'pointer',
+          display: setControlledOpen ? 'none' : 'block',
+        }}
+        title="Ask AI Assistant"
+      >
+        🤖
+      </button>
+      {open && (
+        <div style={{
+          position: 'fixed',
+          bottom: 100,
+          right: 28,
+          width: 370,
+          background: 'white',
+          borderRadius: 12,
+          boxShadow: '0 4px 32px rgba(0,0,0,0.18)',
+          zIndex: 3001,
+          padding: 24,
+          fontFamily: 'Inter, Arial, sans-serif',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <strong style={{ fontSize: 20 }}>AI Assistant</strong>
+            <button onClick={() => setOpen(false)} style={{ fontSize: 22, background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}>×</button>
           </div>
-        </div>
-
-        {response && (
-          <div className="bg-gray-50 dark:bg-zinc-800 rounded-lg p-4">
-            <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100 font-mono">
+          <textarea
+            value={question}
+            onChange={e => setQuestion(e.target.value)}
+            placeholder="Ask about inbreeding, biosecurity, grazing, etc..."
+            style={{ width: '100%', minHeight: 60, border: '1px solid #ccc', borderRadius: 6, padding: 8, fontSize: 15, marginBottom: 10 }}
+          />
+          <button
+            onClick={handleAsk}
+            disabled={loading || !question.trim()}
+            style={{ background: '#2d7d46', color: 'white', border: 'none', borderRadius: 6, padding: '8px 18px', fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 15 }}
+          >
+            {loading ? 'Thinking...' : 'Ask'}
+          </button>
+          {response && (
+            <div style={{ marginTop: 18, background: '#f6f6f6', borderRadius: 6, padding: 12, color: '#333', fontSize: 15 }}>
               {response}
-            </pre>
-          </div>
-        )}
-
-        <div className="mt-4">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quick Actions</h3>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => {
-                setQuery('Show health check-ups needed');
-                handleAskAI();
-              }}
-              className="text-sm bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 px-3 py-2 rounded-lg"
-            >
-              Health Check-ups
-            </button>
-            <button
-              onClick={() => {
-                setQuery('Analyze genetics');
-                handleAskAI();
-              }}
-              className="text-sm bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 px-3 py-2 rounded-lg"
-            >
-              Genetic Analysis
-            </button>
-            <button
-              onClick={() => {
-                setQuery('Suggest breeding pairs');
-                handleAskAI();
-              }}
-              className="text-sm bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 px-3 py-2 rounded-lg"
-            >
-              Breeding Pairs
-            </button>
-          </div>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };

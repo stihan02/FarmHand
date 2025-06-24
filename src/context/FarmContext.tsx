@@ -1,16 +1,19 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { Animal, Transaction, Task, FarmData, Stats, Event } from '../types';
+import { Animal, Transaction, Task, Stats, Event, Camp, FarmData } from '../types';
 
-interface FarmState extends FarmData {
+interface FarmState {
+  animals: Animal[];
+  transactions: Transaction[];
+  tasks: Task[];
   stats: Stats;
   events: Event[];
-  camps: string[]; // list of camp names
+  camps: Camp[];
 }
 
 type FarmAction =
   | { type: 'ADD_ANIMAL'; payload: Animal }
   | { type: 'UPDATE_ANIMAL'; payload: Animal }
-  | { type: 'BULK_UPDATE_ANIMALS_CAMP'; payload: { animalIds: string[], camp: string } }
+  | { type: 'BULK_UPDATE_ANIMALS_CAMP'; payload: { animalIds: string[], campId?: string } }
   | { type: 'REMOVE_ANIMAL'; payload: string }
   | { type: 'ADD_TRANSACTION'; payload: Transaction }
   | { type: 'REMOVE_TRANSACTION'; payload: string }
@@ -20,9 +23,9 @@ type FarmAction =
   | { type: 'ADD_EVENT'; payload: Event }
   | { type: 'UPDATE_EVENT'; payload: Event }
   | { type: 'REMOVE_EVENT'; payload: string }
-  | { type: 'LOAD_DATA'; payload: FarmData & { events?: Event[], camps?: string[] } }
-  | { type: 'ADD_CAMP'; payload: string }
-  | { type: 'RENAME_CAMP'; payload: { oldName: string, newName: string } }
+  | { type: 'LOAD_DATA'; payload: FarmData & { events?: Event[], camps?: Camp[] } }
+  | { type: 'ADD_CAMP'; payload: Camp }
+  | { type: 'UPDATE_CAMP'; payload: Camp }
   | { type: 'DELETE_CAMP'; payload: string };
 
 const calculateStats = (animals: Animal[], transactions: Transaction[], tasks: Task[]): Stats => {
@@ -31,11 +34,11 @@ const calculateStats = (animals: Animal[], transactions: Transaction[], tasks: T
   const deceased = animals.filter(a => a.status === 'Deceased').length;
   
   const totalIncome = transactions
-    .filter(t => t.type === 'Income')
+    .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
   
   const totalExpenses = transactions
-    .filter(t => t.type === 'Expense')
+    .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
   
   const balance = totalIncome - totalExpenses;
@@ -69,11 +72,30 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
     case 'BULK_UPDATE_ANIMALS_CAMP':
       newState = {
         ...state,
-        animals: state.animals.map(animal =>
-          action.payload.animalIds.includes(animal.id)
-            ? { ...animal, camp: action.payload.camp }
-            : animal
-        )
+        animals: state.animals.map(animal => {
+          if (action.payload.animalIds.includes(animal.id)) {
+            const prevCamp = animal.campId || 'Unassigned';
+            const newCamp = action.payload.campId || 'Unassigned';
+            // Only add history if the camp is actually changing
+            if (prevCamp !== newCamp) {
+              return {
+                ...animal,
+                campId: action.payload.campId,
+                history: [
+                  ...animal.history,
+                  {
+                    date: new Date().toISOString(),
+                    description: `Moved from camp ${prevCamp} to ${newCamp}`
+                  }
+                ]
+              };
+            } else {
+              return animal;
+            }
+          } else {
+            return animal;
+          }
+        })
       };
       break;
     case 'REMOVE_ANIMAL':
@@ -153,23 +175,24 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
       };
       break;
     case 'ADD_CAMP':
-      if (state.camps.includes(action.payload)) return state;
+      if (state.camps.some(c => c.id === action.payload.id)) return state;
       newState = { ...state, camps: [...state.camps, action.payload] };
       break;
-    case 'RENAME_CAMP':
+    case 'UPDATE_CAMP':
       newState = {
         ...state,
-        camps: state.camps.map(c => c === action.payload.oldName ? action.payload.newName : c),
-        animals: state.animals.map(a => a.camp === action.payload.oldName ? { ...a, camp: action.payload.newName } : a)
+        camps: state.camps.map(c => c.id === action.payload.id ? action.payload : c)
       };
+      console.log('Camps after UPDATE_CAMP:', newState.camps);
       break;
     case 'DELETE_CAMP':
-      const updatedCamps = state.camps.filter(c => c !== action.payload);
+      const updatedCamps = state.camps.filter(c => c.id !== action.payload);
+      const newDefaultCampId = updatedCamps.length > 0 ? updatedCamps[0].id : undefined;
       newState = {
         ...state,
         camps: updatedCamps,
-        animals: state.animals.map(a => 
-          a.camp === action.payload ? { ...a, camp: updatedCamps[0] || '' } : a
+        animals: state.animals.map(a =>
+          a.campId === action.payload ? { ...a, campId: newDefaultCampId } : a
         )
       };
       break;
@@ -177,7 +200,7 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
       newState = {
         ...action.payload,
         events: action.payload.events || [],
-        camps: action.payload.camps || ['Main Camp'],
+        camps: action.payload.camps || [],
         stats: calculateStats(action.payload.animals, action.payload.transactions, action.payload.tasks)
       };
       break;
@@ -203,7 +226,7 @@ const initialState: FarmState = {
   tasks: [],
   stats: { active: 0, sold: 0, deceased: 0, totalIncome: 0, totalExpenses: 0, balance: 0, pendingTasks: 0 },
   events: [],
-  camps: ['Main Camp']
+  camps: []
 };
 
 const FarmContext = createContext<{

@@ -6,7 +6,7 @@ export interface Animal {
   tagNumber: string;
   tagColor: string;
   birthdate: string;
-  camp: string;
+  campId?: string;
   status: 'Active' | 'Sold' | 'Deceased';
   salePrice?: number;
   saleDate?: string;
@@ -24,6 +24,8 @@ export interface GeneticInfo {
   traits: Record<string, string>;
   lineage: string[];
   notes: string;
+  animalTagNumbers: string[];
+  status?: 'Pending' | 'Completed';
 }
 
 export interface HealthRecord {
@@ -41,7 +43,7 @@ export interface HistoryEvent {
 
 export interface Transaction {
   id: string;
-  type: 'Income' | 'Expense';
+  type: 'income' | 'expense';
   description: string;
   amount: number;
   date: string;
@@ -79,3 +81,50 @@ export interface Event {
   animalTagNumbers: string[];
   status?: 'Pending' | 'Completed';
 }
+
+export interface Camp {
+  id: string;
+  name: string;
+  geoJson: {
+    type: 'Feature';
+    geometry: {
+      type: 'Point' | 'Polygon';
+      coordinates: number[] | number[][][]; // Point: [lng, lat], Polygon: [[[lng, lat], ...]]
+    };
+  };
+  animals: Animal[];
+  recommendedStockingRates?: {
+    LSU?: number;
+    SSU?: number;
+    [key: string]: number | undefined;
+  }; // e.g., { LSU: 0.1, SSU: 0.5 }
+}
+
+export interface FarmState {
+  animals: Animal[];
+  transactions: Transaction[];
+  tasks: Task[];
+  events: Event[];
+  camps: Camp[];
+  stats: {
+    active: number;
+    totalIncome: number;
+    totalExpenses: number;
+    balance: number;
+    pendingTasks: number;
+  };
+}
+
+export type FarmAction =
+  | { type: 'ADD_ANIMAL'; payload: Animal }
+  | { type: 'ADD_ANIMALS'; payload: Animal[] }
+  | { type: 'UPDATE_ANIMAL'; payload: Animal }
+  | { type: 'DELETE_ANIMAL'; payload: string }
+  | { type: 'ADD_TRANSACTION'; payload: Transaction }
+  | { type: 'ADD_TASK'; payload: Task }
+  | { type: 'TOGGLE_TASK'; payload: string }
+  | { type: 'ADD_EVENT'; payload: Event }
+  | { type: 'ADD_CAMP'; payload: Camp }
+  | { type: 'UPDATE_CAMP'; payload: Camp }
+  | { type: 'DELETE_CAMP'; payload: string }
+  | { type: 'SET_STATS'; payload: FarmState['stats'] };

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Animal, HistoryEvent } from '../../types';
 import { calculateAge, formatDate, formatCurrency, generateId } from '../../utils/helpers';
-import { X, Calendar, DollarSign, AlertTriangle, Plus } from 'lucide-react';
+import { X, Calendar, DollarSign, AlertTriangle, Plus, MapPin } from 'lucide-react';
+import { useFarm } from '../../context/FarmContext';
 
 interface AnimalModalProps {
   animal: Animal;
@@ -11,6 +12,7 @@ interface AnimalModalProps {
 }
 
 export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpdate, allAnimals }) => {
+  const { state } = useFarm();
   const [activeTab, setActiveTab] = useState<'profile' | 'sell' | 'deceased' | 'history'>('profile');
   const [sellData, setSellData] = useState({ 
     price: '', 
@@ -85,6 +87,12 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
     
     onUpdate(updatedAnimal);
     setNewEvent({ description: '' });
+  };
+
+  const handleCampChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newCampId = e.target.value;
+    const updatedAnimal = { ...animal, campId: newCampId === 'unassigned' ? undefined : newCampId };
+    onUpdate(updatedAnimal);
   };
 
   const typeEmojis: Record<string, string> = {
@@ -164,24 +172,42 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
                 </div>
               </div>
               
+              <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg">
+                  <label htmlFor="camp-select" className="text-sm text-gray-600 dark:text-gray-300 flex items-center mb-2">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Assigned Camp
+                  </label>
+                  <select
+                    id="camp-select"
+                    value={animal.campId || 'unassigned'}
+                    onChange={handleCampChange}
+                    className="w-full p-2 border rounded-md bg-white dark:bg-zinc-700 dark:border-zinc-600 dark:text-white"
+                  >
+                    <option value="unassigned">Unassigned</option>
+                    {state.camps.map(camp => (
+                      <option key={camp.id} value={camp.id}>{camp.name}</option>
+                    ))}
+                  </select>
+              </div>
+              
               {(animal.motherTag || animal.fatherTag) && (
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">Parentage</h4>
-                  {animal.motherTag && <p className="text-sm text-blue-800">Mother: Tag #{animal.motherTag}</p>}
-                  {animal.fatherTag && <p className="text-sm text-blue-800">Father: Tag #{animal.fatherTag}</p>}
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2">Parentage</h4>
+                  {animal.motherTag && <p className="text-sm text-blue-800 dark:text-blue-300">Mother: Tag #{animal.motherTag}</p>}
+                  {animal.fatherTag && <p className="text-sm text-blue-800 dark:text-blue-300">Father: Tag #{animal.fatherTag}</p>}
                 </div>
               )}
 
               {offspring.length > 0 && (
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-purple-900 mb-2">Offspring ({offspring.length})</h4>
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                  <h4 className="font-medium text-purple-900 dark:text-purple-200 mb-2">Offspring ({offspring.length})</h4>
                   <div className="space-y-2">
                     {offspring.map((child) => (
                       <div key={child.tagNumber} className="flex justify-between items-center">
-                        <p className="text-sm text-purple-800">
+                        <p className="text-sm text-purple-800 dark:text-purple-300">
                           Tag #{child.tagNumber} • {child.type} • {child.sex === 'M' ? 'Male' : 'Female'}
                         </p>
-                        <p className="text-sm text-purple-600">{calculateAge(child.birthdate)}</p>
+                        <p className="text-sm text-purple-600 dark:text-purple-300">{calculateAge(child.birthdate)}</p>
                       </div>
                     ))}
                   </div>
@@ -189,18 +215,18 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
               )}
 
               {animal.status === 'Sold' && animal.salePrice && (
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-green-900 mb-2">Sale Information</h4>
-                  <p className="text-sm text-green-800">Price: {formatCurrency(animal.salePrice)}</p>
-                  <p className="text-sm text-green-800">Date: {formatDate(animal.saleDate!)}</p>
+                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                  <h4 className="font-medium text-green-900 dark:text-green-200 mb-2">Sale Information</h4>
+                  <p className="text-sm text-green-800 dark:text-green-300">Price: {formatCurrency(animal.salePrice)}</p>
+                  <p className="text-sm text-green-800 dark:text-green-300">Date: {formatDate(animal.saleDate!)}</p>
                 </div>
               )}
 
               {animal.status === 'Deceased' && (
-                <div className="bg-red-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-red-900 mb-2">Deceased Information</h4>
-                  <p className="text-sm text-red-800">Reason: {animal.deceasedReason}</p>
-                  <p className="text-sm text-red-800">Date: {formatDate(animal.deceasedDate!)}</p>
+                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                  <h4 className="font-medium text-red-900 dark:text-red-200 mb-2">Deceased Information</h4>
+                  <p className="text-sm text-red-800 dark:text-red-300">Reason: {animal.deceasedReason}</p>
+                  <p className="text-sm text-red-800 dark:text-red-300">Date: {formatDate(animal.deceasedDate!)}</p>
                 </div>
               )}
             </div>

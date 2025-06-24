@@ -1,49 +1,75 @@
 import React from 'react';
-import { DivideIcon as LucideIcon } from 'lucide-react';
+import { useFarm } from '../context/FarmContext';
+import { formatCurrency } from '../utils/helpers';
+import { Users, DollarSign, CheckSquare, Bot } from 'lucide-react';
+import { WeatherWidget } from './WeatherWidget';
 
 interface StatsCardProps {
-  title: string;
-  value: string | number;
-  icon: LucideIcon;
-  color?: 'green' | 'blue' | 'orange' | 'red' | 'purple';
-  subtitle?: string;
+  onOpenAiAssistant: () => void;
 }
 
-const colorClasses = {
-  green: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  blue: 'bg-blue-50 text-blue-700 border-blue-200',
-  orange: 'bg-orange-50 text-orange-700 border-orange-200',
-  red: 'bg-red-50 text-red-700 border-red-200',
-  purple: 'bg-purple-50 text-purple-700 border-purple-200'
-};
+export const StatsCard: React.FC<StatsCardProps> = ({ onOpenAiAssistant }) => {
+  const { state } = useFarm();
+  const { active, totalIncome, totalExpenses, balance, pendingTasks } = state.stats;
 
-const iconColorClasses = {
-  green: 'text-emerald-600',
-  blue: 'text-blue-600',
-  orange: 'text-orange-600',
-  red: 'text-red-600',
-  purple: 'text-purple-600'
-};
-
-export const StatsCard: React.FC<StatsCardProps> = ({ 
-  title, 
-  value, 
-  icon: Icon, 
-  color = 'green',
-  subtitle 
-}) => {
   return (
-    <div className={`p-6 rounded-xl border-2 ${colorClasses[color]} transition-all duration-200 hover:shadow-lg hover:scale-105`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium opacity-80">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
-          {subtitle && (
-            <p className="text-xs opacity-60 mt-1">{subtitle}</p>
-          )}
+    <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div
+        className="bg-white dark:bg-zinc-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 hover:shadow-xl transition-shadow cursor-pointer"
+        onClick={onOpenAiAssistant}
+      >
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+            <Bot className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Assistant</h3>
         </div>
-        <Icon className={`h-8 w-8 ${iconColorClasses[color]}`} />
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Click to get AI help with health monitoring, genetics, and breeding
+        </p>
       </div>
+
+      <div className="bg-white dark:bg-zinc-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-lg">
+            <Users className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Active Animals</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{active}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-zinc-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+            <DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Farm Balance</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(balance)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {formatCurrency(totalIncome)} in / {formatCurrency(totalExpenses)} out
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-zinc-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
+            <CheckSquare className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+          </div>
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Pending Tasks</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{pendingTasks}</p>
+          </div>
+        </div>
+      </div>
+      </div>
+      <WeatherWidget />
     </div>
   );
 };

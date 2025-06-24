@@ -28,9 +28,11 @@ import {
   Check,
   Calendar,
   Plus,
-  Move
+  Move,
+  AlertTriangle
 } from 'lucide-react';
 import { useFarm } from '../../context/FarmContext';
+import { differenceInDays, parseISO } from 'date-fns';
 
 interface AnimalTableProps {
   animals: Animal[];
@@ -49,82 +51,61 @@ const columnHelper = createColumnHelper<Animal>();
 
 // New component for inline camp editing
 const CampCellEditor: React.FC<{
-  value: string;
+  value: string | undefined;
   row: any;
-  onSave: (animalId: string, newCamp: string) => void;
+  onSave: (animalId: string, newCampId: string) => void;
 }> = ({ value, row, onSave }) => {
   const [editing, setEditing] = useState(false);
-  const [camp, setCamp] = useState(value);
+  const [campId, setCampId] = useState(value || '');
   const { state: farmState } = useFarm();
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newCampName, setNewCampName] = useState('');
 
   const handleSave = () => {
     if (isCreatingNew && newCampName.trim() !== '') {
-      onSave(row.original.id, newCampName.trim());
-    } else if (!isCreatingNew && camp) {
-      onSave(row.original.id, camp);
-    }
-    setEditing(false);
-    setIsCreatingNew(false);
-    setNewCampName('');
-  };
-  
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (e.target.value === '__CREATE_NEW__') {
-      setIsCreatingNew(true);
-      setCamp('');
-    } else {
+      // Not supported: creating new camp from here, so just close
+      setEditing(false);
       setIsCreatingNew(false);
-      setCamp(e.target.value);
-      onSave(row.original.id, e.target.value);
+      setNewCampName('');
+    } else if (!isCreatingNew && campId) {
+      onSave(row.original.id, campId);
       setEditing(false);
     }
   };
 
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCampId(e.target.value);
+    onSave(row.original.id, e.target.value);
+    setEditing(false);
+  };
+
   if (editing) {
     return (
-      <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
-        {isCreatingNew ? (
-          <input
-            type="text"
-            value={newCampName}
-            onChange={(e) => setNewCampName(e.target.value)}
-            onBlur={handleSave}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSave();
-              if (e.key === 'Escape') {
-                setEditing(false);
-                setIsCreatingNew(false);
-              }
-            }}
-            className="w-full px-2 py-1 text-sm border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            autoFocus
-          />
-        ) : (
-          <select
-            value={camp}
-            onChange={handleSelectChange}
-            onBlur={() => setEditing(false)}
-            className="w-full px-2 py-1 text-sm border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            autoFocus
-          >
-            {farmState.camps.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-            <option value="__CREATE_NEW__">-- Create New Camp --</option>
-          </select>
-        )}
+      <div className="flex items-center space-x-2" onClick={e => e.stopPropagation()}>
+        <select
+          value={campId}
+          onChange={handleSelectChange}
+          onBlur={() => setEditing(false)}
+          className="w-full px-2 py-1 text-sm border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          autoFocus
+        >
+          {farmState.camps.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
       </div>
     );
   }
 
+  // Show camp name, not id
+  const campName = farmState.camps.find(c => c.id === value)?.name || 'Unassigned';
+
   return (
-    <div onClick={(e) => { e.stopPropagation(); setEditing(true);}} className="cursor-pointer group w-full h-full p-0 m-0">
+    <div onClick={e => { e.stopPropagation(); setEditing(true); }} className="cursor-pointer group w-full h-full p-0 m-0">
       <span className="font-medium text-gray-700 dark:text-gray-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
-        {value}
+        {campName}
       </span>
     </div>
   );
@@ -187,14 +168,65 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     setMoveToCampDropdownOpen(false);
   };
 
-  const handleUpdateCamp = (animalId: string, newCamp: string) => {
-    if (!farmState.camps.includes(newCamp)) {
-      dispatch({ type: 'ADD_CAMP', payload: newCamp });
-    }
+  const handleUpdateCamp = (animalId: string, newCampId: string) => {
     const animal = animals.find(a => a.id === animalId);
-    if(animal) {
-      dispatch({ type: 'UPDATE_ANIMAL', payload: { ...animal, camp: newCamp } });
+    if (animal) {
+      dispatch({ type: 'UPDATE_ANIMAL', payload: { ...animal, campId: newCampId } });
     }
+  };
+
+  const getGrazingDuration = (animal: Animal) => {
+    // Find the last move to the current camp
+    const moveEvents = animal.history
+      .filter(e => e.description.includes('Moved from camp'))
+      .reverse();
+    for (const event of moveEvents) {
+      if (event.description.endsWith(`to ${animal.campId || 'Unassigned'}`)) {
+        const days = differenceInDays(new Date(), parseISO(event.date));
+        return days === 0 ? 'Today' : `${days} day${days !== 1 ? 's' : ''}`;
+      }
+    }
+    return '—';
+  };
+
+  // Inbreeding and biosecurity alert logic
+  const getInbreedingAlert = (animal: Animal) => {
+    if (!animal.campId) return null;
+    // Find all animals in the same camp
+    const animalsInCamp = farmState.animals.filter(a => a.campId === animal.campId && a.id !== animal.id);
+    // Check for parent/offspring
+    const parentTags = [animal.motherTag, animal.fatherTag].filter(Boolean);
+    const siblingTags = [];
+    animalsInCamp.forEach(a => {
+      if (a.motherTag && parentTags.includes(a.motherTag)) siblingTags.push(a.tagNumber);
+      if (a.fatherTag && parentTags.includes(a.fatherTag)) siblingTags.push(a.tagNumber);
+    });
+    const offspringInCamp = animalsInCamp.filter(a => animal.offspringTags.includes(a.tagNumber));
+    const parentInCamp = animalsInCamp.filter(a => parentTags.includes(a.tagNumber));
+    if (siblingTags.length > 0 || offspringInCamp.length > 0 || parentInCamp.length > 0) {
+      return `Inbreeding risk: ${[
+        siblingTags.length > 0 ? 'Sibling(s)' : null,
+        offspringInCamp.length > 0 ? 'Offspring' : null,
+        parentInCamp.length > 0 ? 'Parent' : null
+      ].filter(Boolean).join(', ')} in same camp.`;
+    }
+    return null;
+  };
+  const getBiosecurityAlert = (animal: Animal) => {
+    if (!animal.campId) return null;
+    // Check for recent disease/treatment events in the camp (last 30 days)
+    const animalsInCamp = farmState.animals.filter(a => a.campId === animal.campId);
+    const now = new Date();
+    const recentDisease = animalsInCamp.some(a =>
+      a.health.some(h =>
+        (h.type === 'Treatment' || h.type === 'Vaccination') &&
+        (now.getTime() - new Date(h.date).getTime()) < 1000 * 60 * 60 * 24 * 30
+      )
+    );
+    if (recentDisease) {
+      return 'Biosecurity risk: Recent disease/treatment event in camp.';
+    }
+    return null;
   };
 
   const columns = useMemo(() => [
@@ -288,13 +320,37 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
       ),
       size: 150,
     }),
-    columnHelper.accessor('camp', {
-        header: 'Camp',
-        cell: (props) => (
-          <CampCellEditor value={props.getValue()} row={props.row} onSave={handleUpdateCamp} />
-        ),
-        size: 150,
-      }),
+    columnHelper.accessor('campId', {
+      header: 'Camp',
+      cell: (props) => (
+        <CampCellEditor value={props.getValue()} row={props.row} onSave={handleUpdateCamp} />
+      ),
+      size: 150,
+    }),
+    columnHelper.display({
+      id: 'grazingDuration',
+      header: 'Grazing Duration',
+      cell: ({ row }) => (
+        <span className="dark:text-gray-300">{getGrazingDuration(row.original)}</span>
+      ),
+      size: 120,
+    }),
+    columnHelper.display({
+      id: 'alerts',
+      header: 'Alerts',
+      cell: ({ row }) => {
+        const animal = row.original;
+        const inbreeding = getInbreedingAlert(animal);
+        const biosecurity = getBiosecurityAlert(animal);
+        if (!inbreeding && !biosecurity) return null;
+        return (
+          <span title={[inbreeding, biosecurity].filter(Boolean).join(' | ')} style={{ color: '#eab308', cursor: 'help' }}>
+            <AlertTriangle size={18} />
+          </span>
+        );
+      },
+      size: 50,
+    }),
     columnHelper.display({
       id: 'actions',
       header: 'Actions',
@@ -448,12 +504,12 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                     <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
                       {farmState.camps.map(camp => (
                         <button
-                          key={camp}
-                          onClick={() => handleBulkMove(camp)}
+                          key={camp.id}
+                          onClick={() => handleBulkMove(camp.id)}
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                           role="menuitem"
                         >
-                          {camp}
+                          {camp.name}
                         </button>
                       ))}
                       <div className="border-t border-gray-200 dark:border-gray-600 my-1"></div>
@@ -515,25 +571,25 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
           </div>
         </div>
       )}
-      <div className="overflow-x-auto">
+        <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-700">
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th
-                    key={header.id}
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <th
+                      key={header.id}
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                    style={{ width: header.getSize() }}
-                  >
-                    <div
+                      style={{ width: header.getSize() }}
+                    >
+                        <div
                       {...{
                         className: header.column.getCanSort()
                           ? 'cursor-pointer select-none flex items-center'
                           : '',
                         onClick: header.column.getToggleSortingHandler(),
                       }}
-                    >
+                        >
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
@@ -542,20 +598,20 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                         asc: <ChevronUp className="w-4 h-4 ml-1" />,
                         desc: <ChevronDown className="w-4 h-4 ml-1" />,
                       }[header.column.getIsSorted() as string] ?? null}
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
+                        </div>
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
-            {table.getRowModel().rows.map(row => (
-              <tr 
-                key={row.id}
+              {table.getRowModel().rows.map(row => (
+                <tr
+                  key={row.id}
                 className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer`}
-                onClick={() => onViewProfile(row.original)}
-              >
-                {row.getVisibleCells().map(cell => (
+                  onClick={() => onViewProfile(row.original)}
+                >
+                  {row.getVisibleCells().map(cell => (
                   <td 
                     key={cell.id} 
                     className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300"
@@ -565,14 +621,14 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                       }
                     }}
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
       <div className="p-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-600">
         <div className="flex-1 flex justify-between sm:hidden">
@@ -619,16 +675,16 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
                 className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-              >
+          >
                 <ChevronRight className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
+          </button>
+          <button
+            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+            disabled={!table.getCanNextPage()}
                 className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-              >
+          >
                 <ChevronsRight className="h-5 w-5" />
-              </button>
+          </button>
             </nav>
           </div>
         </div>

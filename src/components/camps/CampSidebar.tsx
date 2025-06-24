@@ -122,41 +122,51 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
   const biosecurityAlerts = Array.from(new Set(animalsInCamp.map(getBiosecurityAlert).filter(Boolean)));
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      right: 0,
-      width: 370,
-      height: '100%',
-      background: 'white',
-      boxShadow: '-2px 0 16px rgba(0,0,0,0.18)',
-      zIndex: 2000,
-      padding: 28,
-      overflowY: 'auto',
-      transition: 'transform 0.3s',
-      fontFamily: 'Inter, Arial, sans-serif',
-    }}>
-      <button onClick={onClose} style={{ float: 'right', fontSize: 22, background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}>×</button>
-      <h2 style={{ marginTop: 0, marginBottom: 8, fontWeight: 700, fontSize: 24 }}>{camp.name}</h2>
-      <div style={{ marginBottom: 18, color: '#444', fontSize: 16 }}>
-        <strong>Area:</strong> <span style={{ color: '#2d7d46' }}>{areaHa.toFixed(2)} ha</span>
+    <div
+      className={
+        `z-50 bg-white box-shadow-lg overflow-y-auto transition-transform duration-300
+        fixed top-0 right-0 h-full w-full sm:w-[370px] sm:static sm:h-full sm:block
+        ${typeof window !== 'undefined' && window.innerWidth < 640 ? 'animate-slide-up' : ''}`
+      }
+      style={{
+        maxWidth: 370,
+        width: '100%',
+        height: '100%',
+        boxShadow: '-2px 0 16px rgba(0,0,0,0.18)',
+        zIndex: 2000,
+        padding: 28,
+        overflowY: 'auto',
+        fontFamily: 'Inter, Arial, sans-serif',
+        ...(typeof window !== 'undefined' && window.innerWidth < 640 ? { left: 0, right: 0, top: 0, bottom: 0 } : {})
+      }}
+    >
+      <button
+        onClick={onClose}
+        className="float-right text-2xl bg-none border-none cursor-pointer text-gray-500 hover:text-gray-700 focus:outline-none"
+        style={{ fontSize: 22 }}
+        aria-label="Close sidebar"
+      >
+        ×
+      </button>
+      <h2 className="mt-0 mb-2 font-bold text-2xl sm:text-3xl">{camp.name}</h2>
+      <div className="mb-4 text-gray-700 text-base sm:text-lg">
+        <strong>Area:</strong> <span className="text-emerald-700">{areaHa.toFixed(2)} ha</span>
       </div>
-      <div style={{ marginBottom: 18 }}>
+      <div className="mb-4 text-gray-700 text-base sm:text-lg">
         <strong>Animals in camp:</strong>
-        {/* Alerts summary */}
         {(inbreedingAlerts.length > 0 || biosecurityAlerts.length > 0) && (
-          <div style={{ margin: '14px 0', background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 8, padding: '10px 14px', color: '#ad6800', fontSize: 15 }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-              <AlertTriangle size={20} style={{ marginRight: 8, verticalAlign: 'middle', color: '#faad14' }} />
-              <strong>Alerts</strong>
+          <div className="mt-2 mb-4 bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+            <div className="flex items-center mb-4">
+              <AlertTriangle size={20} className="text-yellow-400 mr-2" />
+              <strong className="text-yellow-800">Alerts</strong>
             </div>
             {inbreedingAlerts.length > 0 && (
-              <div style={{ marginBottom: 6 }}>
-                <span style={{ fontWeight: 500 }}>Inbreeding risks:</span>
-                <ul style={{ margin: '4px 0 0 0', padding: 0, listStyle: 'none' }}>
+              <div className="mb-2">
+                <span className="font-medium">Inbreeding risks:</span>
+                <ul className="list-disc pl-6">
                   {inbreedingAlerts.map((alert, idx) => (
-                    <li key={idx} style={{ marginBottom: 2, display: 'flex', alignItems: 'center' }}>
-                      <AlertTriangle size={15} style={{ marginRight: 5, color: '#faad14' }} />
+                    <li key={idx} className="flex items-center">
+                      <AlertTriangle size={15} className="text-yellow-400 mr-2" />
                       {alert}
                     </li>
                   ))}
@@ -165,11 +175,11 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
             )}
             {biosecurityAlerts.length > 0 && (
               <div>
-                <span style={{ fontWeight: 500 }}>Biosecurity risks:</span>
-                <ul style={{ margin: '4px 0 0 0', padding: 0, listStyle: 'none' }}>
+                <span className="font-medium">Biosecurity risks:</span>
+                <ul className="list-disc pl-6">
                   {biosecurityAlerts.map((alert, idx) => (
-                    <li key={idx} style={{ marginBottom: 2, display: 'flex', alignItems: 'center' }}>
-                      <AlertTriangle size={15} style={{ marginRight: 5, color: '#faad14' }} />
+                    <li key={idx} className="flex items-center">
+                      <AlertTriangle size={15} className="text-yellow-400 mr-2" />
                       {alert}
                     </li>
                   ))}
@@ -178,75 +188,61 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
             )}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 20, marginTop: 6 }}>
-          <div title={UNIT_INFO.LSU} style={{ cursor: 'help', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontWeight: 500 }}>LSU:</span> {lsuCount}
-            {lsuOver && <span style={{ color: 'red', marginLeft: 4 }}>⚠️</span>}
+        <div className="flex gap-4 mt-2">
+          <div title={UNIT_INFO.LSU} className="cursor-help flex items-center gap-2">
+            <span className="font-medium">LSU:</span> {lsuCount}
+            {lsuOver && <span className="text-red-500 ml-2">⚠️</span>}
           </div>
-          <div title={UNIT_INFO.SSU} style={{ cursor: 'help', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontWeight: 500 }}>SSU:</span> {ssuCount}
-            {ssuOver && <span style={{ color: 'red', marginLeft: 4 }}>⚠️</span>}
+          <div title={UNIT_INFO.SSU} className="cursor-help flex items-center gap-2">
+            <span className="font-medium">SSU:</span> {ssuCount}
+            {ssuOver && <span className="text-red-500 ml-2">⚠️</span>}
           </div>
         </div>
         {(lsuOver || ssuOver) && (
-          <div style={{ color: 'red', marginTop: 6, fontWeight: 500 }}>
+          <div className="text-red-500 mt-2 font-medium">
             Overgrazing risk! Check your stocking rates.
           </div>
         )}
-        {/* Grazing duration summary */}
         {grazingDurations.length > 0 && (
-          <div style={{ marginTop: 10, color: '#444', fontSize: 15 }}>
+          <div className="mt-4 text-gray-700 text-base sm:text-lg">
             <strong>Grazing Duration:</strong><br />
             <span>Min: {minGrazing}d &nbsp;|&nbsp; Max: {maxGrazing}d &nbsp;|&nbsp; Avg: {avgGrazing}d</span>
           </div>
         )}
       </div>
-      <div style={{ marginBottom: 22 }}>
+      <div className="mb-4">
         <strong>Recommended Stocking Rates</strong>
-        <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>
-          <span title={UNIT_INFO.LSU} style={{ cursor: 'help', textDecoration: 'underline dotted' }}>LSU</span>: Large Stock Unit &nbsp;|&nbsp;
-          <span title={UNIT_INFO.SSU} style={{ cursor: 'help', textDecoration: 'underline dotted' }}>SSU</span>: Small Stock Unit
+        <div className="text-gray-600 text-sm mb-2">
+          <span title={UNIT_INFO.LSU} className="text-decoration-underline text-decoration-dotted">LSU</span>: Large Stock Unit &nbsp;|&nbsp;
+          <span title={UNIT_INFO.SSU} className="text-decoration-underline text-decoration-dotted">SSU</span>: Small Stock Unit
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span title={UNIT_INFO.LSU} style={{ minWidth: 40 }}>LSU/ha</span>
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-4">
+            <span title={UNIT_INFO.LSU} className="min-w-[40px]">LSU/ha</span>
             <input
               type="number"
               step="0.01"
               value={stockingRates.LSU}
               onChange={e => handleRateChange('LSU', e.target.value)}
-              style={{ width: 70, padding: 4, border: '1px solid #ccc', borderRadius: 4 }}
+              className="w-20 p-2 border border-gray-300 rounded"
             />
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span title={UNIT_INFO.SSU} style={{ minWidth: 40 }}>SSU/ha</span>
+          <label className="flex items-center gap-4">
+            <span title={UNIT_INFO.SSU} className="min-w-[40px]">SSU/ha</span>
             <input
               type="number"
               step="0.01"
               value={stockingRates.SSU}
               onChange={e => handleRateChange('SSU', e.target.value)}
-              style={{ width: 70, padding: 4, border: '1px solid #ccc', borderRadius: 4 }}
+              className="w-20 p-2 border border-gray-300 rounded"
             />
           </label>
         </div>
-        <button onClick={handleSaveRates} style={{ marginTop: 12, padding: '6px 18px', background: '#2d7d46', color: 'white', border: 'none', borderRadius: 4, fontWeight: 500, cursor: 'pointer', boxShadow: '0 2px 8px rgba(45,125,70,0.08)' }}>Save Rates</button>
+        <button onClick={handleSaveRates} className="mt-4 p-2 bg-emerald-600 text-white rounded font-medium">Save Rates</button>
       </div>
-      {/* More details and animal management coming soon */}
       <button
         type="button"
-        style={{
-          color: '#1565c0',
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          fontSize: 15,
-          marginTop: 24,
-          cursor: 'pointer',
-          fontWeight: 600,
-          textDecoration: 'underline',
-          display: 'inline-block',
-          transition: 'color 0.2s',
-        }}
+        className="text-blue-500 bg-none border-none p-0 text-sm mt-4 cursor-pointer font-semibold text-decoration-underline inline-block transition-color duration-200"
         onMouseOver={e => (e.currentTarget.style.color = '#003c8f')}
         onMouseOut={e => (e.currentTarget.style.color = '#1565c0')}
         onClick={() => alert('More camp details and animal management coming soon!')}

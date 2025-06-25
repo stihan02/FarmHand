@@ -124,7 +124,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       </aside>
       {/* Main content */}
       <div className="sm:ml-64 h-full pb-16">
-        <AnimalSwipe />
+        {/* <AnimalSwipe /> */}
         {children}
       </div>
       {/* Bottom tab bar for mobile */}

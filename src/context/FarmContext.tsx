@@ -208,15 +208,6 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
       return state;
   }
 
-  // Save to localStorage
-  localStorage.setItem('farmData', JSON.stringify({
-    animals: newState.animals,
-    transactions: newState.transactions,
-    tasks: newState.tasks,
-    events: newState.events,
-    camps: newState.camps
-  }));
-
   return newState;
 };
 
@@ -248,6 +239,19 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
   }, []);
+
+  // Add this useEffect to save state to localStorage on the client after state changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('farmData', JSON.stringify({
+        animals: state.animals,
+        transactions: state.transactions,
+        tasks: state.tasks,
+        events: state.events,
+        camps: state.camps
+      }));
+    }
+  }, [state.animals, state.transactions, state.tasks, state.events, state.camps]);
 
   return (
     <FarmContext.Provider value={{ state, dispatch }}>

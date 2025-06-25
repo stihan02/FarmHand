@@ -3,6 +3,7 @@ import { CampMap, MinimalMap } from './CampMap';
 import { Camp } from '../../types';
 import { CampSidebar } from './CampSidebar';
 import { useFarm } from '../../context/FarmContext';
+import { useIsMobile } from '../../utils/helpers';
 
 interface CampMarker {
   lat: number;
@@ -41,7 +42,7 @@ export const CampManagement: React.FC<CampManagementProps> = ({ camps, onAddCamp
   };
 
   // Helper: is mobile
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const isMobile = useIsMobile(640);
 
   return (
     <div style={{

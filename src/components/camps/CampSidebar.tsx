@@ -4,6 +4,7 @@ import { useFarm } from '../../context/FarmContext';
 import { Camp } from '../../types';
 import { differenceInDays, parseISO } from 'date-fns';
 import { AlertTriangle } from 'lucide-react';
+import { useIsMobile } from '../../utils/helpers';
 
 const UNIT_INFO = {
   LSU: 'Large Stock Unit (e.g., 1 cow, 1 horse, 5 donkeys, 7 pigs)',
@@ -121,12 +122,14 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
   const inbreedingAlerts = Array.from(new Set(animalsInCamp.map(getInbreedingAlert).filter(Boolean)));
   const biosecurityAlerts = Array.from(new Set(animalsInCamp.map(getBiosecurityAlert).filter(Boolean)));
 
+  const isMobile = useIsMobile(640);
+
   return (
     <div
       className={
         `z-50 bg-white box-shadow-lg overflow-y-auto transition-transform duration-300
         fixed top-0 right-0 h-full w-full sm:w-[370px] sm:static sm:h-full sm:block
-        ${typeof window !== 'undefined' && window.innerWidth < 640 ? 'animate-slide-up' : ''}`
+        ${isMobile ? 'animate-slide-up' : ''}`
       }
       style={{
         maxWidth: 370,
@@ -137,7 +140,7 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
         padding: 28,
         overflowY: 'auto',
         fontFamily: 'Inter, Arial, sans-serif',
-        ...(typeof window !== 'undefined' && window.innerWidth < 640 ? { left: 0, right: 0, top: 0, bottom: 0 } : {})
+        ...(isMobile ? { left: 0, right: 0, top: 0, bottom: 0 } : {})
       }}
     >
       <button

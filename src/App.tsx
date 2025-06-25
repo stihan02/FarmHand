@@ -41,13 +41,6 @@ function AppContent() {
   const [eventModalTags, setEventModalTags] = useState<string[]>([]);
   const [aiOpen, setAiOpen] = useState(false);
 
-  console.log('App state.camps:', state.camps);
-  if (state.camps.length > 0) {
-    state.camps.forEach((camp, idx) => {
-      console.log(`Camp ${idx}:`, JSON.stringify(camp, null, 2));
-    });
-  }
-
   const addAnimal = (animal: Animal) => {
     dispatch({ type: 'ADD_ANIMAL', payload: animal });
   };

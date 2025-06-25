@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 export const calculateAge = (birthdate: string): string => {
   try {
     const birth = new Date(birthdate);
@@ -118,4 +120,23 @@ export async function askHuggingFaceFlanT5(prompt: string): Promise<string> {
   } catch (err: any) {
     return `Error: ${err.message || 'Failed to contact Hugging Face API.'}`;
   }
+}
+
+export function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < breakpoint;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth < breakpoint);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [breakpoint]);
+
+  return isMobile;
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Home, PawPrint, DollarSign, CheckSquare, Bot, BookUser, MapPin } from 'lucide-react';
-import AnimalSwipe from './animals/AnimalSwipe';
+// import AnimalSwipe from './animals/AnimalSwipe';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'stud' | 'camps';
 
@@ -23,7 +23,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
   ];
 
   return (
-    <div className="relative h-screen bg-gray-100 dark:bg-zinc-900">
+    <div className="flex h-screen bg-gray-100 dark:bg-zinc-900 flex-col sm:flex-row">
       {/* Mobile header with hamburger menu */}
       <div className="sm:hidden flex items-center justify-between bg-white dark:bg-zinc-800 p-4 shadow-md">
         <button
@@ -38,60 +38,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           <span className="text-lg font-bold text-gray-900 dark:text-gray-100">FarmHand</span>
         </div>
       </div>
-      {/* Sidebar drawer for mobile */}
-      <div
-        className={`fixed inset-0 z-50 transition-transform duration-300 sm:hidden ${sidebarOpen ? '' : 'pointer-events-none'}`}
-        aria-hidden={!sidebarOpen}
+      {/* Sidebar for desktop and mobile drawer */}
+      <aside
+        className={`bg-white dark:bg-zinc-800 p-6 flex-shrink-0 flex flex-col shadow-lg w-64
+          sm:static sm:translate-x-0 sm:w-64
+          fixed top-0 left-0 h-full z-40 transition-transform duration-200
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          sm:translate-x-0
+        `}
+        style={{ maxWidth: 260 }}
       >
-        {/* Overlay */}
-        <div
-          className={`absolute inset-0 bg-black bg-opacity-40 transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`}
-          onClick={() => setSidebarOpen(false)}
-        />
-        {/* Drawer */}
-        <aside
-          className={`absolute top-0 left-0 h-full w-64 bg-white dark:bg-zinc-800 p-6 flex flex-col shadow-lg transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
-        >
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            aria-label="Close sidebar"
-          >
-            ×
-          </button>
-          <div className="flex items-center space-x-3 mb-10">
-            <PawPrint className="h-8 w-8 text-emerald-500" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">FarmHand</h1>
-          </div>
-          <div className="space-y-3">
-            {navItems.map(item => (
-                <button
-                key={item.id}
-                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === item.id
-                    ? 'bg-emerald-500 text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700'
-                  }`}
-                >
-                <item.icon className="h-5 w-5" />
-                <span>{item.label}</span>
-                </button>
-              ))}
-          </div>
-          {onOpenAiAssistant && (
-            <button
-              onClick={onOpenAiAssistant}
-              className="mt-auto w-full flex items-center justify-center px-4 py-3 rounded-lg text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600"
-            >
-              <Bot className="mr-2 h-5 w-5" />
-              AI Assistant
-            </button>
-          )}
-        </aside>
-      </div>
-      {/* Sidebar for desktop */}
-      <aside className="hidden sm:flex w-64 bg-white dark:bg-zinc-800 p-6 flex-shrink-0 flex-col shadow-lg h-full fixed sm:static z-30">
         <div className="flex items-center space-x-3 mb-10">
           <PawPrint className="h-8 w-8 text-emerald-500" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">FarmHand</h1>
@@ -100,7 +56,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           {navItems.map(item => (
               <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === item.id
                   ? 'bg-emerald-500 text-white shadow-md'
@@ -122,9 +78,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           </button>
         )}
       </aside>
+      {/* Overlay for mobile sidebar */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-30 z-30 sm:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       {/* Main content */}
-      <div className="sm:ml-64 h-full pb-16">
-        {/* <AnimalSwipe /> */}
+      <div className="flex-1 flex flex-col overflow-auto">
         {children}
       </div>
       {/* Bottom tab bar for mobile */}

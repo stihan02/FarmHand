@@ -70,58 +70,6 @@ export const isOverdue = (dueDate: string): boolean => {
   return new Date(dueDate) < new Date();
 };
 
-/**
- * Calls the Hugging Face Inference API (google/flan-t5-base) with a prompt and returns the result.
- * NOTE: Your Hugging Face token must have 'Inference API' permission, not just 'Read'.
- * @param prompt The user question or prompt string.
- * @returns The model's response as a string.
- */
-export async function askHuggingFaceFlanT5(prompt: string): Promise<string> {
-  const HF_TOKEN = import.meta.env.VITE_HF_TOKEN;
-  if (!HF_TOKEN) {
-    return 'Hugging Face API token is missing. Please set VITE_HF_TOKEN in your .env file.';
-  }
-  // Use a different public model for testing
-  const endpoint = 'https://api-inference.huggingface.co/models/bigscience/bloom-560m';
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${HF_TOKEN}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ inputs: prompt }),
-    });
-    const text = await response.text();
-    let data: any;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      // Not JSON, treat as plain text error
-      return `Hugging Face API error: ${text}. This may mean the model is unavailable, the endpoint is incorrect, or your token is invalid or missing 'Inference API' permission. [Raw response: ${text}]`;
-    }
-    if (!response.ok) {
-      if (data.error && data.error.includes('loading')) {
-        return 'The model is loading on Hugging Face. Please wait a few seconds and try again.';
-      }
-      return `Hugging Face API error: ${data.error || response.statusText} [Status: ${response.status}]`;
-    }
-    if (Array.isArray(data) && data[0]?.generated_text) {
-      return data[0].generated_text.trim();
-    }
-    if (typeof data === 'object' && data.generated_text) {
-      return data.generated_text.trim();
-    }
-    if (data.error && data.error.includes('loading')) {
-      return 'The model is loading on Hugging Face. Please wait a few seconds and try again.';
-    }
-    throw new Error('Unexpected Hugging Face API response: ' + JSON.stringify(data));
-  } catch (err: any) {
-    return `Error: ${err.message || 'Failed to contact Hugging Face API.'}`;
-  }
-}
-
 export function useIsMobile(breakpoint = 640) {
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window !== 'undefined') {

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Animal, HealthRecord } from '../../types';
-import { askHuggingFaceFlanT5 } from '../../utils/helpers';
 
 interface AIAssistantProps {
   open?: boolean;
@@ -19,7 +18,16 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ open: controlledOpen, 
     setLoading(true);
     setResponse('');
     try {
-      const result = await askHuggingFaceFlanT5(question);
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: question,
+          // Optionally include farmData here if you want context-aware answers
+        }),
+      });
+      const data = await response.json();
+      const result = data[0]?.generated_text || 'Sorry, I could not answer.';
       setResponse(result);
     } catch (err: any) {
       setResponse('Sorry, there was an error contacting the AI service.');

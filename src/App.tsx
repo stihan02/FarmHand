@@ -22,7 +22,6 @@ import {
 import { Animal, Transaction, Task, Event, Camp } from './types';
 import { ScheduleEventModal } from './components/animals/ScheduleEventModal';
 import { v4 as uuidv4 } from 'uuid';
-import { StudRegistrationPlaceholder } from './components/stud/StudRegistrationPlaceholder';
 import { StatsCard } from './components/StatsCard';
 import { CampManagement } from './components/camps/CampManagement';
 import InventoryList from './components/inventory/InventoryList';
@@ -280,7 +279,6 @@ function AppContent() {
             )}
           </div>
           )}
-          {activeTab === 'stud' && <StudRegistrationPlaceholder />}
           {activeTab === 'inventory' && (
             <InventoryList />
           )}

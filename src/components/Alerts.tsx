@@ -7,7 +7,7 @@ const Alerts: React.FC = () => {
 
   useEffect(() => {
     async function fetchAlerts() {
-      const response = await fetch('/api/ai-helper', {
+      const response = await fetch('/api/ai-api', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -77,53 +77,55 @@ const InventoryList: React.FC = () => {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Inventory</h2>
-      <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="py-2 px-4 text-left">Name</th>
-            <th className="py-2 px-4 text-left">Category</th>
-            <th className="py-2 px-4 text-left">Quantity</th>
-            <th className="py-2 px-4 text-left">Unit</th>
-            <th className="py-2 px-4 text-left">Expiry</th>
-            <th className="py-2 px-4 text-left">Supplier</th>
-            <th className="py-2 px-4 text-left">Price per unit</th>
-            <th className="py-2 px-4 text-left">Total value</th>
-            <th className="py-2 px-4 text-left">Status</th>
-            <th className="py-2 px-4 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {inventory.length === 0 && (
-            <tr>
-              <td colSpan={8} className="py-4 text-center text-gray-400">No inventory items yet.</td>
+      <div className="w-full overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="py-2 px-4 text-left">Name</th>
+              <th className="py-2 px-4 text-left hidden sm:table-cell">Category</th>
+              <th className="py-2 px-4 text-left">Quantity</th>
+              <th className="py-2 px-4 text-left hidden sm:table-cell">Unit</th>
+              <th className="py-2 px-4 text-left hidden sm:table-cell">Expiry</th>
+              <th className="py-2 px-4 text-left hidden sm:table-cell">Supplier</th>
+              <th className="py-2 px-4 text-left hidden sm:table-cell">Price per unit</th>
+              <th className="py-2 px-4 text-left hidden sm:table-cell">Total value</th>
+              <th className="py-2 px-4 text-left">Status</th>
+              <th className="py-2 px-4 text-left hidden sm:table-cell">Actions</th>
             </tr>
-          )}
-          {inventory.map(item => (
-            <tr key={item.id} className={isLowStock(item) ? 'bg-red-50' : ''}>
-              <td className="py-2 px-4 font-medium">{item.name}</td>
-              <td className="py-2 px-4">{categoryLabels[item.category]}</td>
-              <td className="py-2 px-4">{item.quantity}</td>
-              <td className="py-2 px-4">{item.unit}</td>
-              <td className="py-2 px-4">{item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '-'}</td>
-              <td className="py-2 px-4">{item.supplier || '-'}</td>
-              <td className="py-2 px-4">{item.price ? item.price.toLocaleString(undefined, { style: 'currency', currency: 'ZAR' }) : '-'}</td>
-              <td className="py-2 px-4">{item.price && item.quantity ? (item.price * item.quantity).toLocaleString(undefined, { style: 'currency', currency: 'ZAR' }) : '-'}</td>
-              <td className="py-2 px-4">
-                {isLowStock(item) ? (
-                  <span className="text-red-600 font-semibold">Low</span>
-                ) : (
-                  <span className="text-green-600">OK</span>
-                )}
-              </td>
-              <td className="py-2 px-4 space-x-2">
-                <button className="text-blue-600 hover:underline" onClick={() => { setSelectedItem(item); setEditModalOpen(true); }}>Edit</button>
-                <button className="text-red-600 hover:underline" onClick={() => dispatch({ type: 'REMOVE_INVENTORY_ITEM', payload: item.id })}>Remove</button>
-                <button className="text-yellow-600 hover:underline" onClick={() => { setSelectedItem(item); setUsageModalOpen(true); }}>Log Usage</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {inventory.length === 0 && (
+              <tr>
+                <td colSpan={10} className="py-4 text-center text-gray-400">No inventory items yet.</td>
+              </tr>
+            )}
+            {inventory.map(item => (
+              <tr key={item.id} className={isLowStock(item) ? 'bg-red-50' : ''} onClick={() => { setSelectedItem(item); setEditModalOpen(true); }} style={{ cursor: 'pointer' }}>
+                <td className="py-2 px-4 font-medium">{item.name}</td>
+                <td className="py-2 px-4 hidden sm:table-cell">{categoryLabels[item.category]}</td>
+                <td className="py-2 px-4">{item.quantity}</td>
+                <td className="py-2 px-4 hidden sm:table-cell">{item.unit}</td>
+                <td className="py-2 px-4 hidden sm:table-cell">{item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '-'}</td>
+                <td className="py-2 px-4 hidden sm:table-cell">{item.supplier || '-'}</td>
+                <td className="py-2 px-4 hidden sm:table-cell">{item.price ? item.price.toLocaleString(undefined, { style: 'currency', currency: 'ZAR' }) : '-'}</td>
+                <td className="py-2 px-4 hidden sm:table-cell">{item.price && item.quantity ? (item.price * item.quantity).toLocaleString(undefined, { style: 'currency', currency: 'ZAR' }) : '-'}</td>
+                <td className="py-2 px-4">
+                  {isLowStock(item) ? (
+                    <span className="text-red-600 font-semibold">Low</span>
+                  ) : (
+                    <span className="text-green-600">OK</span>
+                  )}
+                </td>
+                <td className="py-2 px-4 space-x-2 hidden sm:table-cell">
+                  <button className="text-blue-600 hover:underline" onClick={e => { e.stopPropagation(); setSelectedItem(item); setEditModalOpen(true); }}>Edit</button>
+                  <button className="text-red-600 hover:underline" onClick={e => { e.stopPropagation(); dispatch({ type: 'REMOVE_INVENTORY_ITEM', payload: item.id }); }}>Remove</button>
+                  <button className="text-yellow-600 hover:underline" onClick={e => { e.stopPropagation(); setSelectedItem(item); setUsageModalOpen(true); }}>Log Usage</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <div className="mt-4">
         <button className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700" onClick={() => setAddModalOpen(true)}>
           Add Item

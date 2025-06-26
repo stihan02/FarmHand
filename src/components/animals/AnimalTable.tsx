@@ -579,7 +579,11 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                   {headerGroup.headers.map(header => (
                     <th
                       key={header.id}
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      className={
+                        header.id === 'tagNumber' || header.id === 'camp' || header.id === 'status'
+                          ? 'px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'
+                          : 'px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hidden sm:table-cell'
+                      }
                       style={{ width: header.getSize() }}
                     >
                         <div
@@ -595,7 +599,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                         header.getContext()
                       )}
                       {{
-                        asc: <ChevronUp className="w-4 h-4 ml-1" />,
+                        asc: <ChevronUp className="w-4 h-4 ml-1" />, 
                         desc: <ChevronDown className="w-4 h-4 ml-1" />,
                       }[header.column.getIsSorted() as string] ?? null}
                         </div>
@@ -608,19 +612,23 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
               {table.getRowModel().rows.map(row => (
                 <tr
                   key={row.id}
-                className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer`}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer`}
                   onClick={() => onViewProfile(row.original)}
                 >
                   {row.getVisibleCells().map(cell => (
-                  <td 
-                    key={cell.id} 
-                    className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300"
-                    onClick={e => {
-                      if (cell.column.id === 'select' || cell.column.id === 'actions' || cell.column.id === 'camp') {
-                        e.stopPropagation();
+                    <td
+                      key={cell.id}
+                      className={
+                        cell.column.id === 'tagNumber' || cell.column.id === 'camp' || cell.column.id === 'status'
+                          ? 'px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300'
+                          : 'px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 hidden sm:table-cell'
                       }
-                    }}
-                  >
+                      onClick={e => {
+                        if (cell.column.id === 'select' || cell.column.id === 'actions' || cell.column.id === 'camp') {
+                          e.stopPropagation();
+                        }
+                      }}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}

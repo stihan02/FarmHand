@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Animal, HealthRecord } from '../../types';
+import { useFarm } from '../../context/FarmContext';
 
 interface AIAssistantProps {
   open?: boolean;
@@ -13,6 +14,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ open: controlledOpen, 
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
+  const { state } = useFarm();
 
   const handleAsk = async () => {
     setLoading(true);
@@ -23,7 +25,11 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ open: controlledOpen, 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: question,
-          // Optionally include farmData here if you want context-aware answers
+          farmData: {
+            animals: state.animals,
+            inventory: state.inventory,
+            tasks: state.tasks,
+          },
         }),
       });
       const data = await response.json();

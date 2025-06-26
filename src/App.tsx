@@ -25,8 +25,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { StudRegistrationPlaceholder } from './components/stud/StudRegistrationPlaceholder';
 import { StatsCard } from './components/StatsCard';
 import { CampManagement } from './components/camps/CampManagement';
+import InventoryList from './components/inventory/InventoryList';
+import Alerts from './components/Alerts';
 
-type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'stud' | 'camps';
+type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'stud' | 'camps' | 'inventory';
 
 function AppContent() {
   const { state, dispatch } = useFarm();
@@ -168,6 +170,7 @@ function AppContent() {
       setActiveTab={setActiveTab}
     >
       <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full">
+        <Alerts />
         {activeTab === 'dashboard' && <StatsCard onOpenAiAssistant={() => setAiOpen(true)} />}
         {activeTab === 'animals' && (
           <div className="space-y-6">
@@ -278,6 +281,9 @@ function AppContent() {
           </div>
           )}
           {activeTab === 'stud' && <StudRegistrationPlaceholder />}
+          {activeTab === 'inventory' && (
+            <InventoryList />
+          )}
       </main>
 
       {/* Event Modal */}

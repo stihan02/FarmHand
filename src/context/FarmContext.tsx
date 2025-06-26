@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { Animal, Transaction, Task, Stats, Event, Camp, FarmData } from '../types';
+import { Animal, Transaction, Task, Stats, Event, Camp, FarmData, InventoryItem } from '../types';
 
 interface FarmState {
   animals: Animal[];
@@ -8,6 +8,7 @@ interface FarmState {
   stats: Stats;
   events: Event[];
   camps: Camp[];
+  inventory: InventoryItem[];
 }
 
 type FarmAction =
@@ -23,10 +24,14 @@ type FarmAction =
   | { type: 'ADD_EVENT'; payload: Event }
   | { type: 'UPDATE_EVENT'; payload: Event }
   | { type: 'REMOVE_EVENT'; payload: string }
-  | { type: 'LOAD_DATA'; payload: FarmData & { events?: Event[], camps?: Camp[] } }
+  | { type: 'LOAD_DATA'; payload: FarmData & { events?: Event[], camps?: Camp[], inventory?: InventoryItem[] } }
   | { type: 'ADD_CAMP'; payload: Camp }
   | { type: 'UPDATE_CAMP'; payload: Camp }
-  | { type: 'DELETE_CAMP'; payload: string };
+  | { type: 'DELETE_CAMP'; payload: string }
+  | { type: 'ADD_INVENTORY_ITEM'; payload: InventoryItem }
+  | { type: 'UPDATE_INVENTORY_ITEM'; payload: InventoryItem }
+  | { type: 'REMOVE_INVENTORY_ITEM'; payload: string }
+  | { type: 'LOG_INVENTORY_USAGE'; payload: { id: string; change: number; reason: string } };
 
 const calculateStats = (animals: Animal[], transactions: Transaction[], tasks: Task[]): Stats => {
   const active = animals.filter(a => a.status === 'Active').length;
@@ -196,12 +201,53 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
         )
       };
       break;
+    case 'ADD_INVENTORY_ITEM':
+      newState = {
+        ...state,
+        inventory: [...state.inventory, action.payload],
+      };
+      break;
+    case 'UPDATE_INVENTORY_ITEM':
+      newState = {
+        ...state,
+        inventory: state.inventory.map(item => item.id === action.payload.id ? action.payload : item),
+      };
+      break;
+    case 'REMOVE_INVENTORY_ITEM':
+      newState = {
+        ...state,
+        inventory: state.inventory.filter(item => item.id !== action.payload),
+      };
+      break;
+    case 'LOG_INVENTORY_USAGE':
+      newState = {
+        ...state,
+        inventory: state.inventory.map(item =>
+          item.id === action.payload.id
+            ? {
+                ...item,
+                quantity: item.quantity + action.payload.change,
+                lastUsed: new Date().toISOString(),
+                history: [
+                  ...item.history,
+                  {
+                    date: new Date().toISOString(),
+                    change: action.payload.change,
+                    reason: action.payload.reason,
+                  },
+                ],
+              }
+            : item
+        ),
+      };
+      break;
     case 'LOAD_DATA':
       newState = {
         ...action.payload,
         events: action.payload.events || [],
         camps: action.payload.camps || [],
-        stats: calculateStats(action.payload.animals, action.payload.transactions, action.payload.tasks)
+        inventory: action.payload.inventory || [],
+        stats: calculateStats(action.payload.animals, action.payload.transactions, action.payload.tasks),
       };
       break;
     default:
@@ -217,7 +263,8 @@ const initialState: FarmState = {
   tasks: [],
   stats: { active: 0, sold: 0, deceased: 0, totalIncome: 0, totalExpenses: 0, balance: 0, pendingTasks: 0 },
   events: [],
-  camps: []
+  camps: [],
+  inventory: [],
 };
 
 const FarmContext = createContext<{
@@ -232,7 +279,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const savedData = localStorage.getItem('farmData');
     if (savedData) {
       try {
-        const farmData: FarmData = JSON.parse(savedData);
+        const farmData: FarmData & { events?: Event[], camps?: Camp[], inventory?: InventoryItem[] } = JSON.parse(savedData);
         dispatch({ type: 'LOAD_DATA', payload: farmData });
       } catch (error) {
         console.error('Error loading farm data:', error);
@@ -248,10 +295,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         transactions: state.transactions,
         tasks: state.tasks,
         events: state.events,
-        camps: state.camps
+        camps: state.camps,
+        inventory: state.inventory,
       }));
     }
-  }, [state.animals, state.transactions, state.tasks, state.events, state.camps]);
+  }, [state.animals, state.transactions, state.tasks, state.events, state.camps, state.inventory]);
 
   return (
     <FarmContext.Provider value={{ state, dispatch }}>

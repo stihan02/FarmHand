@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Home, PawPrint, DollarSign, CheckSquare, Bot, BookUser, MapPin } from 'lucide-react';
+import { Home, PawPrint, DollarSign, CheckSquare, Bot, BookUser, MapPin, Box } from 'lucide-react';
 // import AnimalSwipe from './animals/AnimalSwipe';
 
-type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'stud' | 'camps';
+type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'stud' | 'camps' | 'inventory';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -17,6 +17,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     { id: 'dashboard' as ActiveTab, label: 'Dashboard', icon: Home },
     { id: 'animals' as ActiveTab, label: 'Animals', icon: PawPrint },
     { id: 'finances' as ActiveTab, label: 'Finances', icon: DollarSign },
+    { id: 'inventory' as ActiveTab, label: 'Inventory', icon: Box },
     { id: 'tasks' as ActiveTab, label: 'Tasks', icon: CheckSquare },
     { id: 'camps' as ActiveTab, label: 'Camps', icon: MapPin },
     { id: 'stud' as ActiveTab, label: 'Stud Registration', icon: BookUser },

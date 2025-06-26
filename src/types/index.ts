@@ -7,6 +7,7 @@ export interface Animal {
   tagColor: string;
   birthdate: string;
   campId?: string;
+  position?: { lat: number; lng: number };
   status: 'Active' | 'Sold' | 'Deceased';
   salePrice?: number;
   saleDate?: string;
@@ -128,3 +129,18 @@ export type FarmAction =
   | { type: 'UPDATE_CAMP'; payload: Camp }
   | { type: 'DELETE_CAMP'; payload: string }
   | { type: 'SET_STATS'; payload: FarmState['stats'] };
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  category: 'medicine' | 'feed' | 'fencing' | 'equipment' | 'other';
+  quantity: number;
+  unit: string;
+  expiryDate?: string;
+  supplier?: string;
+  lastUsed?: string;
+  history: { date: string; change: number; reason: string }[];
+  lowStockThreshold?: number;
+  notes?: string;
+  price?: number;
+}

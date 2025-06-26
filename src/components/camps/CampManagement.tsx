@@ -4,6 +4,8 @@ import { Camp } from '../../types';
 import { CampSidebar } from './CampSidebar';
 import { useFarm } from '../../context/FarmContext';
 import { useIsMobile } from '../../utils/helpers';
+import { AnimalModal } from '../animals/AnimalModal';
+import { Animal } from '../../types';
 
 interface CampMarker {
   lat: number;
@@ -21,7 +23,8 @@ interface CampManagementProps {
 export const CampManagement: React.FC<CampManagementProps> = ({ camps, onAddCamp, onUpdateCamp, onDeleteCamp }) => {
   const [selectedCamp, setSelectedCamp] = useState<Camp | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { state } = useFarm();
+  const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
+  const { state, dispatch } = useFarm();
 
   // Add a new camp from the map (polygon)
   const handleAddCamp = (camp: any) => {
@@ -43,6 +46,25 @@ export const CampManagement: React.FC<CampManagementProps> = ({ camps, onAddCamp
 
   // Helper: is mobile
   const isMobile = useIsMobile(640);
+
+  // Handler for updating animal position and campId
+  const handleUpdateAnimalPosition = (animalId: string, campId: string, position: { lat: number, lng: number }) => {
+    const animal = state.animals.find(a => a.id === animalId);
+    if (animal) {
+      dispatch({ type: 'UPDATE_ANIMAL', payload: { ...animal, campId, position } });
+    }
+  };
+
+  // Handler for opening animal info modal
+  const handleAnimalClick = (animal: Animal) => {
+    setSelectedAnimal(animal);
+  };
+
+  // Handler for updating animal info from modal
+  const handleUpdateAnimal = (animal: Animal) => {
+    dispatch({ type: 'UPDATE_ANIMAL', payload: animal });
+    setSelectedAnimal(null);
+  };
 
   return (
     <div style={{
@@ -71,6 +93,8 @@ export const CampManagement: React.FC<CampManagementProps> = ({ camps, onAddCamp
             setSelectedCamp(latest);
             if (isMobile) setSidebarOpen(false); // Don't open sidebar immediately on mobile
           }}
+          onAnimalClick={handleAnimalClick}
+          onUpdateAnimalPosition={handleUpdateAnimalPosition}
         />
         {/* Floating Details button on mobile */}
         {isMobile && selectedCamp && !sidebarOpen && (
@@ -97,6 +121,15 @@ export const CampManagement: React.FC<CampManagementProps> = ({ camps, onAddCamp
             const latest = state.camps.find(c => c.id === camp.id) || camp;
             setSelectedCamp(latest);
           }}
+        />
+      )}
+      {/* Animal info modal */}
+      {selectedAnimal && (
+        <AnimalModal
+          animal={selectedAnimal}
+          onClose={() => setSelectedAnimal(null)}
+          onUpdate={handleUpdateAnimal}
+          allAnimals={state.animals}
         />
       )}
     </div>

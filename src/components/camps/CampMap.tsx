@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, LayersControl, Popup, useMapEvents, Polygon, FeatureGroup, useMap } from 'react-leaflet';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, LayersControl, Popup, useMapEvents, Polygon, FeatureGroup, useMap, Tooltip } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import L from 'leaflet';
 import * as turf from '@turf/turf';
 import { useFarm } from '../../context/FarmContext';
+import { Animal } from '../../types';
 
 // Fix default marker icon issue in Leaflet
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
@@ -62,9 +63,21 @@ const ClickLogger = () => {
   return null;
 };
 
+// Utility to ensure a polygon ring is closed
+function closeRing(coords: [number, number][]) {
+  if (coords.length < 2) return coords;
+  const first = coords[0];
+  const last = coords[coords.length - 1];
+  if (first[0] !== last[0] || first[1] !== last[1]) {
+    return [...coords, first];
+  }
+  return coords;
+}
+
 // Utility to calculate polygon area in hectares using turf.js
 function calculatePolygonAreaHa(coords: [number, number][]) {
-  const polygon = turf.polygon([[...coords, coords[0]]]); // Ensure closed ring
+  const closed = closeRing(coords);
+  const polygon = turf.polygon([closed]);
   return turf.area(polygon) / 10000; // m^2 to ha
 }
 
@@ -93,7 +106,7 @@ const FitBoundsToCamps: React.FC<{ camps: any[] }> = ({ camps }) => {
   return null;
 };
 
-export const CampMap: React.FC<CampMapProps> = (props) => {
+export const CampMap: React.FC<CampMapProps & { onAnimalClick?: (animal: Animal) => void; onUpdateAnimalPosition?: (animalId: string, campId: string, position: { lat: number, lng: number }) => void }> = (props) => {
   const featureGroupRef = useRef(null);
   const { state } = useFarm();
 
@@ -105,6 +118,32 @@ export const CampMap: React.FC<CampMapProps> = (props) => {
     if (density > 5) return '⚠️ Overgrazing risk!';
     return null;
   };
+
+  // Helper: get centroid of a camp polygon
+  const getCampCentroid = (camp: any) => {
+    if (
+      camp.geoJson &&
+      camp.geoJson.geometry &&
+      camp.geoJson.geometry.type === 'Polygon' &&
+      Array.isArray(camp.geoJson.geometry.coordinates) &&
+      Array.isArray(camp.geoJson.geometry.coordinates[0])
+    ) {
+      const closed = closeRing(camp.geoJson.geometry.coordinates[0]);
+      const turfPoly = turf.polygon([closed]);
+      const centroid = turf.centroid(turfPoly).geometry.coordinates;
+      return { lat: centroid[1], lng: centroid[0] };
+    }
+    return { lat: 0, lng: 0 };
+  };
+
+  // Handler for dragging animal marker
+  const handleAnimalDragEnd = useCallback((animal: Animal, campId: string, e: any) => {
+    const { lat, lng } = e.target.getLatLng();
+    props.onUpdateAnimalPosition && props.onUpdateAnimalPosition(animal.id, campId, { lat, lng });
+  }, [props]);
+
+  // Handler for dropping animal into a new camp
+  // (This can be implemented with more advanced drag-and-drop if needed)
 
   // Handler for when a polygon is created
   const handleDrawCreate = (e: any) => {
@@ -177,47 +216,76 @@ export const CampMap: React.FC<CampMapProps> = (props) => {
             const areaHa = calculatePolygonAreaHa(camp.geoJson.geometry.coordinates[0]);
             const animalCount = getAnimalCount(camp.id);
             const warning = getOvergrazingWarning(animalCount, areaHa);
+            // Get all live animals in this camp
+            const animalsInCamp = state.animals.filter(a => a.campId === camp.id && a.status === 'Active');
             return (
-              <Polygon
-                key={camp.id || idx}
-                positions={camp.geoJson.geometry.coordinates[0].map(([lng, lat]: [number, number]) => [lat, lng])}
-              >
-                <Popup>
-                  <strong>{camp.name}</strong>
-                  <br />
-                  Area: {areaHa.toFixed(2)} ha
-                  <br />
-                  Animals: {animalCount}
-                  <br />
-                  {warning && <span style={{ color: 'red' }}>{warning}<br /></span>}
-                  <button
-                    style={{
-                      marginTop: 4,
-                      color: '#1565c0',
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      fontSize: 15,
-                      fontWeight: 600,
-                      textDecoration: 'underline',
-                      cursor: 'pointer',
-                      transition: 'color 0.2s',
-                      display: 'inline-block',
-                    }}
-                    onMouseOver={e => (e.currentTarget.style.color = '#003c8f')}
-                    onMouseOut={e => (e.currentTarget.style.color = '#1565c0')}
-                    onClick={e => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      props.onViewDetails && props.onViewDetails(camp);
-                    }}
-                  >
-                    View Details
-                  </button>
-                  <br />
-                  <button onClick={() => props.onDeleteCamp(camp.id || idx)} style={{ color: 'red', marginTop: 4 }}>Delete</button>
-                </Popup>
-              </Polygon>
+              <React.Fragment key={camp.id || idx}>
+                <Polygon
+                  positions={camp.geoJson.geometry.coordinates[0].map(([lng, lat]: [number, number]) => [lat, lng])}
+                >
+                  <Popup>
+                    <strong>{camp.name}</strong>
+                    <br />
+                    Area: {areaHa.toFixed(2)} ha
+                    <br />
+                    Animals: {animalCount}
+                    <br />
+                    {warning && <span style={{ color: 'red' }}>{warning}<br /></span>}
+                    <button
+                      style={{
+                        marginTop: 4,
+                        color: '#1565c0',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        fontSize: 15,
+                        fontWeight: 600,
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        transition: 'color 0.2s',
+                        display: 'inline-block',
+                      }}
+                      onMouseOver={e => (e.currentTarget.style.color = '#003c8f')}
+                      onMouseOut={e => (e.currentTarget.style.color = '#1565c0')}
+                      onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        props.onViewDetails && props.onViewDetails(camp);
+                      }}
+                    >
+                      View Details
+                    </button>
+                    <br />
+                    <button onClick={() => props.onDeleteCamp(camp.id || idx)} style={{ color: 'red', marginTop: 4 }}>Delete</button>
+                  </Popup>
+                  {/* Render animal markers for this camp */}
+                  {animalsInCamp.map(animal => {
+                    // Use animal.position if available, else camp centroid
+                    const pos = animal.position || getCampCentroid(camp);
+                    return (
+                      <Marker
+                        key={animal.id}
+                        position={[pos.lat, pos.lng]}
+                        draggable={true}
+                        eventHandlers={{
+                          dragend: (e) => handleAnimalDragEnd(animal, camp.id, e),
+                          click: () => props.onAnimalClick && props.onAnimalClick(animal),
+                        }}
+                      >
+                        <Popup>
+                          <div>
+                            <strong>Tag:</strong> {animal.tagNumber}<br />
+                            <strong>Gender:</strong> {animal.sex}
+                          </div>
+                        </Popup>
+                        <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={false}>
+                          {animal.tagNumber} ({animal.sex})
+                        </Tooltip>
+                      </Marker>
+                    );
+                  })}
+                </Polygon>
+              </React.Fragment>
             );
           })}
         </FeatureGroup>

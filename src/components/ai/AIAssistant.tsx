@@ -20,7 +20,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ open: controlledOpen, 
     setLoading(true);
     setResponse('');
     try {
-      const response = await fetch('/api/ai', {
+      const response = await fetch('/api/ai-helper', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

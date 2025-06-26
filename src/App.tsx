@@ -309,10 +309,34 @@ function AppContent() {
   );
 }
 
+// ErrorBoundary component
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    // You can log errorInfo here if needed
+  }
+  render() {
+    if (this.state.hasError) {
+      return <div style={{ color: 'red', padding: 16 }}>Something went wrong: {String(this.state.error)}</div>;
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   return (
     <FarmProvider>
-      <AppContent />
+      <ErrorBoundary>
+        {/* TEMP: Test div to confirm rendering works on Vercel */}
+        <div style={{ background: '#e0e0e0', padding: 16, marginBottom: 16 }}>If you see this, React is rendering correctly.</div>
+        <AppContent />
+      </ErrorBoundary>
     </FarmProvider>
   );
 }

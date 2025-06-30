@@ -39,6 +39,10 @@ function AppContent() {
   const [eventModalTags, setEventModalTags] = useState<string[]>([]);
   const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
   const [isAddAnimalModalOpen, setAddAnimalModalOpen] = useState(false);
+  const [reminderModalOpen, setReminderModalOpen] = useState(false);
+  const [reminderDesc, setReminderDesc] = useState('');
+  const [reminderDate, setReminderDate] = useState('');
+  const [reminderAnimal, setReminderAnimal] = useState('');
 
   const addAnimal = (animal: Animal) => {
     dispatch({ type: 'ADD_ANIMAL', payload: animal });
@@ -232,10 +236,18 @@ function AppContent() {
         {activeTab === 'tasks' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Tasks ({filteredTasks.length})
               </h2>
-              <AddTaskForm onAdd={addTask} />
+              <div className="flex gap-2">
+                <button
+                  className="bg-yellow-500 text-white px-3 py-2 rounded shadow hover:bg-yellow-600"
+                  onClick={() => setReminderModalOpen(true)}
+                >
+                  Set Reminder
+                </button>
+                <AddTaskForm onAdd={addTask} />
+              </div>
             </div>
             
             {filteredTasks.length === 0 ? (
@@ -288,6 +300,56 @@ function AppContent() {
           existingTags={state.animals.map(a => a.tagNumber)}
           camps={state.camps.map(c => ({ id: c.id, name: c.name }))}
         />
+      )}
+
+      {/* Reminder Modal */}
+      {reminderModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h2 className="text-xl font-bold mb-4">Set Reminder</h2>
+            <form onSubmit={e => {
+              e.preventDefault();
+              if (!reminderDesc || !reminderDate) return;
+              dispatch({
+                type: 'ADD_TASK',
+                payload: {
+                  id: Date.now().toString(),
+                  description: reminderDesc,
+                  dueDate: reminderDate,
+                  status: 'Pending',
+                  reminder: true,
+                  relatedAnimalIds: reminderAnimal ? [reminderAnimal] : undefined,
+                }
+              });
+              setReminderModalOpen(false);
+              setReminderDesc('');
+              setReminderDate('');
+              setReminderAnimal('');
+            }}>
+              <div className="mb-2">
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <input type="text" className="w-full border rounded px-3 py-2" value={reminderDesc} onChange={e => setReminderDesc(e.target.value)} required />
+              </div>
+              <div className="mb-2">
+                <label className="block text-sm font-medium mb-1">Due Date</label>
+                <input type="date" className="w-full border rounded px-3 py-2" value={reminderDate} onChange={e => setReminderDate(e.target.value)} required />
+              </div>
+              <div className="mb-2">
+                <label className="block text-sm font-medium mb-1">Animal (optional)</label>
+                <select className="w-full border rounded px-3 py-2" value={reminderAnimal} onChange={e => setReminderAnimal(e.target.value)}>
+                  <option value="">-- None --</option>
+                  {state.animals.map(a => (
+                    <option key={a.id} value={a.id}>{a.type} #{a.tagNumber}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-2 justify-end mt-4">
+                <button type="button" className="px-4 py-2 rounded bg-gray-200" onClick={() => setReminderModalOpen(false)}>Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded bg-yellow-500 text-white disabled:bg-gray-300" disabled={!reminderDesc || !reminderDate}>Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </Layout>
   );

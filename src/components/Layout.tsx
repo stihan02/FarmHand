@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Home, PawPrint, DollarSign, CheckSquare, MapPin } from 'lucide-react';
+import { Home, PawPrint, DollarSign, CheckSquare, MapPin, Bell } from 'lucide-react';
 import AnimalSwipe from './animals/AnimalSwipe';
+import { useFarm } from '../context/FarmContext';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
 
@@ -12,6 +13,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { state } = useFarm();
   const navItems = [
     { id: 'dashboard' as ActiveTab, label: 'Dashboard', icon: Home },
     { id: 'animals' as ActiveTab, label: 'Animals', icon: PawPrint },
@@ -21,8 +23,25 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     { id: 'inventory' as ActiveTab, label: 'Inventory', icon: CheckSquare },
   ];
 
+  // Count due/overdue reminders
+  const now = new Date();
+  const dueReminders = state.tasks.filter(
+    t => t.reminder && t.status !== 'Completed' && new Date(t.dueDate) <= now
+  );
+
   return (
     <div className="relative h-screen bg-gray-100 dark:bg-zinc-900">
+      {/* Desktop notification bell */}
+      <div className="hidden sm:flex absolute top-4 right-8 z-50 items-center">
+        <button onClick={() => setActiveTab('tasks')} className="relative p-2 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800">
+          <Bell className="h-6 w-6 text-yellow-500" />
+          {dueReminders.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
+              {dueReminders.length}
+            </span>
+          )}
+        </button>
+      </div>
       {/* Mobile header with hamburger menu */}
       <div className="sm:hidden flex items-center justify-between bg-white dark:bg-zinc-800 p-4 shadow-md">
         <button

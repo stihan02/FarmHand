@@ -12,7 +12,7 @@ interface AnimalModalProps {
 }
 
 export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpdate, allAnimals }) => {
-  const { state } = useFarm();
+  const { state, dispatch } = useFarm();
   const [activeTab, setActiveTab] = useState<'profile' | 'sell' | 'deceased' | 'history'>('profile');
   const [sellData, setSellData] = useState({ 
     price: '', 
@@ -24,6 +24,9 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
     date: new Date().toISOString().split('T')[0] 
   });
   const [newEvent, setNewEvent] = useState({ description: '' });
+  const [reminderModalOpen, setReminderModalOpen] = useState(false);
+  const [reminderDesc, setReminderDesc] = useState('');
+  const [reminderDate, setReminderDate] = useState('');
 
   // Find offspring animals
   const offspring = allAnimals.filter(a => a.motherTag === animal.tagNumber || a.fatherTag === animal.tagNumber);
@@ -150,6 +153,12 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
         <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 8rem)' }}>
           {activeTab === 'profile' && (
             <div className="space-y-4">
+              <button
+                className="bg-yellow-500 text-white px-3 py-2 rounded shadow hover:bg-yellow-600 w-full mb-2"
+                onClick={() => setReminderModalOpen(true)}
+              >
+                Set Reminder for this Animal
+              </button>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-600">Age</p>
@@ -396,6 +405,46 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
           )}
         </div>
       </div>
+
+      {/* Reminder Modal */}
+      {reminderModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h2 className="text-xl font-bold mb-4">Set Reminder for Tag #{animal.tagNumber}</h2>
+            <form onSubmit={e => {
+              e.preventDefault();
+              if (!reminderDesc || !reminderDate) return;
+              dispatch({
+                type: 'ADD_TASK',
+                payload: {
+                  id: Date.now().toString(),
+                  description: reminderDesc,
+                  dueDate: reminderDate,
+                  status: 'Pending',
+                  reminder: true,
+                  relatedAnimalIds: [animal.id],
+                }
+              });
+              setReminderModalOpen(false);
+              setReminderDesc('');
+              setReminderDate('');
+            }}>
+              <div className="mb-2">
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <input type="text" className="w-full border rounded px-3 py-2" value={reminderDesc} onChange={e => setReminderDesc(e.target.value)} required />
+              </div>
+              <div className="mb-2">
+                <label className="block text-sm font-medium mb-1">Due Date</label>
+                <input type="date" className="w-full border rounded px-3 py-2" value={reminderDate} onChange={e => setReminderDate(e.target.value)} required />
+              </div>
+              <div className="flex gap-2 justify-end mt-4">
+                <button type="button" className="px-4 py-2 rounded bg-gray-200" onClick={() => setReminderModalOpen(false)}>Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded bg-yellow-500 text-white disabled:bg-gray-300" disabled={!reminderDesc || !reminderDate}>Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

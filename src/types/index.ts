@@ -56,6 +56,16 @@ export interface Task {
   description: string;
   dueDate: string;
   status: 'Pending' | 'Completed';
+  /** If true, this task is a reminder (not just a generic task) */
+  reminder?: boolean;
+  /** Animal IDs this reminder/task is related to */
+  relatedAnimalIds?: string[];
+  /** Group/camp this reminder/task is related to (e.g., 'cattle', 'camp-1') */
+  relatedGroup?: string;
+  /** Recurrence rule for reminders (for future extensibility) */
+  repeat?: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+  /** If snoozed, the new due date */
+  snoozedUntil?: string;
 }
 
 export interface FarmData {

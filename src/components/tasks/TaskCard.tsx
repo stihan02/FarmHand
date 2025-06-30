@@ -1,7 +1,7 @@
 import React from 'react';
 import { Task } from '../../types';
 import { formatDate, isOverdue } from '../../utils/helpers';
-import { Clock, CheckCircle, Calendar, Trash2 } from 'lucide-react';
+import { Clock, CheckCircle, Calendar, Trash2, Bell } from 'lucide-react';
 
 interface TaskCardProps {
   task: Task;
@@ -31,8 +31,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleStatus, onRemo
           <div className="flex-1">
             <h3 className={`font-medium ${
               isCompleted ? 'text-gray-600 line-through' : 'text-gray-900'
-            }`}>
+            } flex items-center gap-2`}>
               {task.description}
+              {task.reminder && (
+                <span title={overdue ? 'Reminder overdue' : 'Reminder'}>
+                  <Bell className={`inline h-4 w-4 ml-1 ${overdue ? 'text-red-500' : 'text-yellow-500'}`} />
+                </span>
+              )}
             </h3>
             <div className="flex items-center space-x-4 mt-2">
               <div className={`flex items-center space-x-1 text-sm ${

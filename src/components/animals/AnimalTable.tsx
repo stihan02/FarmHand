@@ -33,13 +33,14 @@ import {
 } from 'lucide-react';
 import { useFarm } from '../../context/FarmContext';
 import { differenceInDays, parseISO } from 'date-fns';
+import { AnimalModal } from './AnimalModal';
 
 interface AnimalTableProps {
   animals: Animal[];
   onMarkSold: (animal: Animal) => void;
   onMarkDeceased: (animal: Animal) => void;
   onRemove: (animal: Animal) => void;
-  onMoveToCamp: (animalIds: string[], camp: string) => void;
+  onMoveToCamp: (animalIds: string[], campId: string) => void;
   searchTerm: string;
   statusFilter: string;
   campFilter: string;
@@ -128,6 +129,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
   const { state: farmState, dispatch } = useFarm();
   const [moveToCampDropdownOpen, setMoveToCampDropdownOpen] = useState(false);
   const [newCampName, setNewCampName] = useState('');
+  const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
 
   const typeEmojis: Record<string, string> = {
     Sheep: '🐑',
@@ -159,9 +161,9 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     setRowSelection({});
   };
 
-  const handleBulkMove = (camp: string) => {
+  const handleBulkMove = (campId: string) => {
     const selectedAnimalIds = table.getSelectedRowModel().flatRows.map(row => row.original.id);
-    onMoveToCamp(selectedAnimalIds, camp);
+    onMoveToCamp(selectedAnimalIds, campId);
     setRowSelection({});
     setMoveToCampDropdownOpen(false);
   };
@@ -473,227 +475,230 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-      {selectedRowCount > 0 && (
-        <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-              {selectedRowCount} item(s) selected
-            </p>
-            <div className="relative inline-block text-left">
-              <div>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-emerald-500"
-                  onClick={() => setMoveToCampDropdownOpen(!moveToCampDropdownOpen)}
-                >
-                  <Move className="mr-2 h-5 w-5" />
-                  Move to Camp
-                  <ChevronDown className="-mr-1 ml-2 h-5 w-5" />
-                </button>
-              </div>
-
-              {moveToCampDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setMoveToCampDropdownOpen(false)}></div>
-                  <div 
-                    className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-20 border dark:border-gray-700"
+    <>
+      <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+        {selectedRowCount > 0 && (
+          <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                {selectedRowCount} item(s) selected
+              </p>
+              <div className="relative inline-block text-left">
+                <div>
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-emerald-500"
+                    onClick={() => setMoveToCampDropdownOpen(!moveToCampDropdownOpen)}
                   >
-                    <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-                      {farmState.camps.map(camp => (
-                        <button
-                          key={camp.id}
-                          onClick={() => handleBulkMove(camp.id)}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          role="menuitem"
-                        >
-                          {camp.name}
-                        </button>
-                      ))}
-                      <div className="border-t border-gray-200 dark:border-gray-600 my-1"></div>
-                      <div className="p-2">
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="text"
-                            placeholder="New camp name..."
-                            value={newCampName}
-                            onClick={e => e.stopPropagation()}
-                            onChange={e => setNewCampName(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleCreateAndMoveCamp()}
-                            className="w-full text-sm px-2 py-1.5 rounded-md border-gray-300 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-                          />
+                    <Move className="mr-2 h-5 w-5" />
+                    Move to Camp
+                    <ChevronDown className="-mr-1 ml-2 h-5 w-5" />
+                  </button>
+                </div>
+
+                {moveToCampDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setMoveToCampDropdownOpen(false)}></div>
+                    <div 
+                      className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-20 border dark:border-gray-700"
+                    >
+                      <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                        {farmState.camps.map(camp => (
                           <button
-                            onClick={handleCreateAndMoveCamp}
-                            className="p-1.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
-                            disabled={!newCampName.trim()}
+                            key={camp.id}
+                            onClick={() => handleBulkMove(camp.id)}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            role="menuitem"
                           >
-                            <Plus className="h-4 w-4"/>
+                            {camp.name}
                           </button>
+                        ))}
+                        <div className="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+                        <div className="p-2">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              placeholder="New camp name..."
+                              value={newCampName}
+                              onClick={e => e.stopPropagation()}
+                              onChange={e => setNewCampName(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && handleCreateAndMoveCamp()}
+                              className="w-full text-sm px-2 py-1.5 rounded-md border-gray-300 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                            />
+                            <button
+                              onClick={handleCreateAndMoveCamp}
+                              className="p-1.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
+                              disabled={!newCampName.trim()}
+                            >
+                              <Plus className="h-4 w-4"/>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+               <button
+                  onClick={() => {
+                    const selected = table.getSelectedRowModel().flatRows.map(row => row.original.tagNumber);
+                    onScheduleEventClick && onScheduleEventClick(selected);
+                  }}
+                  className="px-3 py-1.5 text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-200 dark:hover:bg-purple-900"
+                >
+                  Schedule Event
+                </button>
+              <button
+                onClick={() => handleBulkAction('sell')}
+                className="px-3 py-1.5 text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-200 dark:hover:bg-blue-900"
+              >
+                Mark as Sold
+              </button>
+              <button
+                onClick={() => handleBulkAction('deceased')}
+                className="px-3 py-1.5 text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-200 dark:hover:bg-red-900"
+              >
+                Mark as Deceased
+              </button>
+              <button
+                onClick={() => handleBulkAction('remove')}
+                className="px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
+              >
+                Remove
+              </button>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-2">
-             <button
-                onClick={() => {
-                  const selected = table.getSelectedRowModel().flatRows.map(row => row.original.tagNumber);
-                  onScheduleEventClick && onScheduleEventClick(selected);
-                }}
-                className="px-3 py-1.5 text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-200 dark:hover:bg-purple-900"
-              >
-                Schedule Event
-              </button>
-            <button
-              onClick={() => handleBulkAction('sell')}
-              className="px-3 py-1.5 text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-200 dark:hover:bg-blue-900"
-            >
-              Mark as Sold
-            </button>
-            <button
-              onClick={() => handleBulkAction('deceased')}
-              className="px-3 py-1.5 text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-200 dark:hover:bg-red-900"
-            >
-              Mark as Deceased
-            </button>
-            <button
-              onClick={() => handleBulkAction('remove')}
-              className="px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
-            >
-              Remove
-            </button>
-          </div>
-        </div>
-      )}
-      <div className="w-full overflow-x-auto">
-        <table className="min-w-full text-xs sm:text-sm divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-              {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <th
-                      key={header.id}
-                      className={
-                        header.id === 'tagNumber' || header.id === 'camp' || header.id === 'status'
-                          ? 'px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'
-                          : 'px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hidden sm:table-cell'
-                      }
-                      style={{ width: header.getSize() }}
-                    >
-                        <div
-                      {...{
-                        className: header.column.getCanSort()
-                          ? 'cursor-pointer select-none flex items-center'
-                          : '',
-                        onClick: header.column.getToggleSortingHandler(),
-                      }}
-                        >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {{
-                        asc: <ChevronUp className="w-4 h-4 ml-1" />, 
-                        desc: <ChevronDown className="w-4 h-4 ml-1" />,
-                      }[header.column.getIsSorted() as string] ?? null}
-                        </div>
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
-              {table.getRowModel().rows.map(row => (
-                <tr
-                  key={row.id}
-                  className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer`}
-                >
-                  {row.getVisibleCells().map(cell => (
-                    <td
-                      key={cell.id}
-                      className={
-                        cell.column.id === 'tagNumber' || cell.column.id === 'camp' || cell.column.id === 'status'
-                          ? 'px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300'
-                          : 'px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 hidden sm:table-cell'
-                      }
-                      onClick={e => {
-                        if (cell.column.id === 'select' || cell.column.id === 'actions' || cell.column.id === 'camp') {
-                          e.stopPropagation();
+        )}
+        <div className="w-full overflow-x-auto">
+          <table className="min-w-full text-xs sm:text-sm divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+                {table.getHeaderGroups().map(headerGroup => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map(header => (
+                      <th
+                        key={header.id}
+                        className={
+                          header.id === 'tagNumber' || header.id === 'camp' || header.id === 'status'
+                            ? 'px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'
+                            : 'px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hidden sm:table-cell'
                         }
-                      }}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-      <div className="p-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-600">
-        <div className="flex-1 flex justify-between sm:hidden">
-          <button
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <button
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              Page{' '}
-              <span className="font-medium">{table.getState().pagination.pageIndex + 1}</span> of{' '}
-              <span className="font-medium">{table.getPageCount()}</span>
-            </p>
+                        style={{ width: header.getSize() }}
+                      >
+                          <div
+                        {...{
+                          className: header.column.getCanSort()
+                            ? 'cursor-pointer select-none flex items-center'
+                            : '',
+                          onClick: header.column.getToggleSortingHandler(),
+                        }}
+                          >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        {{
+                          asc: <ChevronUp className="w-4 h-4 ml-1" />, 
+                          desc: <ChevronDown className="w-4 h-4 ml-1" />,
+                        }[header.column.getIsSorted() as string] ?? null}
+                          </div>
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
+                {table.getRowModel().rows.map(row => (
+                  <tr
+                    key={row.id}
+                    className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer`}
+                    onClick={() => setSelectedAnimal(row.original)}
+                  >
+                    {row.getVisibleCells().map(cell => (
+                      <td
+                        key={cell.id}
+                        className={
+                          cell.column.id === 'tagNumber' || cell.column.id === 'camp' || cell.column.id === 'status'
+                            ? 'px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300'
+                            : 'px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 hidden sm:table-cell'
+                        }
+                        onClick={e => {
+                          if (cell.column.id === 'select' || cell.column.id === 'actions' || cell.column.id === 'camp') {
+                            e.stopPropagation();
+                          }
+                        }}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div>
-            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-              <button
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+
+        <div className="p-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-600">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                Page{' '}
+                <span className="font-medium">{table.getState().pagination.pageIndex + 1}</span> of{' '}
+                <span className="font-medium">{table.getPageCount()}</span>
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => table.setPageIndex(0)}
+                  disabled={!table.getCanPreviousPage()}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  <ChevronsLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                  className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
-                <ChevronsLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-                className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-                className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-                <ChevronRight className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-                <ChevronsRight className="h-5 w-5" />
-          </button>
-            </nav>
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                  disabled={!table.getCanNextPage()}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  <ChevronsRight className="h-5 w-5" />
+                </button>
+              </nav>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };

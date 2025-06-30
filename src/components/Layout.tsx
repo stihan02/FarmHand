@@ -105,7 +105,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           </div>
         </aside>
         <main className="flex-1 h-full overflow-y-auto pb-16">
-          <AnimalSwipe />
           {children}
         </main>
       </div>

@@ -34,6 +34,7 @@ import {
 import { useFarm } from '../../context/FarmContext';
 import { differenceInDays, parseISO } from 'date-fns';
 import { AnimalModal } from './AnimalModal';
+import * as XLSX from 'xlsx';
 
 interface AnimalTableProps {
   animals: Animal[];
@@ -111,6 +112,21 @@ const CampCellEditor: React.FC<{
   );
 };
 
+// Add types for import preview and errors
+interface ImportAnimalRow {
+  type: string;
+  tagNumber: string;
+  sex: 'M' | 'F';
+  tagColor: string;
+  age: string;
+  [key: string]: any;
+}
+interface ImportError {
+  row: number;
+  error: string;
+  data: any;
+}
+
 export const AnimalTable: React.FC<AnimalTableProps> = ({
   animals,
   onMarkSold,
@@ -130,6 +146,10 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
   const [moveToCampDropdownOpen, setMoveToCampDropdownOpen] = useState(false);
   const [newCampName, setNewCampName] = useState('');
   const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importErrors, setImportErrors] = useState<ImportError[]>([]);
+  const [importPreview, setImportPreview] = useState<ImportAnimalRow[]>([]);
+  const [importFileName, setImportFileName] = useState('');
 
   const typeEmojis: Record<string, string> = {
     Sheep: '🐑',
@@ -474,6 +494,108 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     setMoveToCampDropdownOpen(false);
   };
 
+  // Template data
+  const templateHeaders = ['type', 'tagNumber', 'sex', 'tagColor', 'age'];
+  const templateExample = [
+    { type: 'Sheep', tagNumber: '123', sex: 'F', tagColor: 'Yellow', age: '2' },
+    { type: 'Cattle', tagNumber: '456', sex: 'M', tagColor: 'Blue', age: '3' },
+  ];
+
+  function downloadTemplate(format: 'csv' | 'xlsx') {
+    const ws = XLSX.utils.json_to_sheet(templateExample, { header: templateHeaders });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Animals');
+    if (format === 'csv') {
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'animal_import_template.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      XLSX.writeFile(wb, 'animal_import_template.xlsx');
+    }
+  }
+
+  function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      if (!evt.target) return;
+      const data = evt.target.result as string | ArrayBuffer;
+      let workbook;
+      if (file.name.endsWith('.csv')) {
+        workbook = XLSX.read(data, { type: 'string' });
+      } else {
+        workbook = XLSX.read(data, { type: 'binary' });
+      }
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' }) as ImportAnimalRow[];
+      const valid: ImportAnimalRow[] = [];
+      const errors: ImportError[] = [];
+      rows.forEach((row, idx) => {
+        const missing = templateHeaders.filter(h => !row[h] || row[h].toString().trim() === '');
+        if (missing.length > 0) {
+          errors.push({ row: idx + 2, error: `Missing: ${missing.join(', ')}`, data: row });
+          return;
+        }
+        // Validate sex
+        if (!['M', 'F'].includes(row.sex)) {
+          errors.push({ row: idx + 2, error: 'Sex must be M or F', data: row });
+          return;
+        }
+        // Validate age is a number
+        if (isNaN(Number(row.age))) {
+          errors.push({ row: idx + 2, error: 'Age must be a number', data: row });
+          return;
+        }
+        valid.push(row);
+      });
+      setImportPreview(valid);
+      setImportErrors(errors);
+    };
+    if (file.name.endsWith('.csv')) {
+      reader.readAsText(file);
+    } else {
+      reader.readAsBinaryString(file);
+    }
+  }
+
+  function handleImportConfirm() {
+    // Add valid animals
+    importPreview.forEach(row => {
+      const animal = {
+        id: Math.random().toString(36).slice(2),
+        type: row.type,
+        tagNumber: row.tagNumber,
+        sex: row.sex,
+        tagColor: row.tagColor,
+        birthdate: '', // User must edit to set real birthdate if needed
+        campId: undefined,
+        status: 'Active' as const,
+        salePrice: undefined,
+        saleDate: undefined,
+        deceasedReason: undefined,
+        deceasedDate: undefined,
+        motherTag: undefined,
+        fatherTag: undefined,
+        offspringTags: [],
+        genetics: { traits: {}, lineage: [], notes: '', animalTagNumbers: [] },
+        health: [],
+        history: [{ date: new Date().toISOString().split('T')[0], description: 'Imported' }],
+      };
+      dispatch({ type: 'ADD_ANIMAL', payload: animal });
+    });
+    setImportModalOpen(false);
+    setImportPreview([]);
+    setImportErrors([]);
+    setImportFileName('');
+  }
+
   return (
     <>
       <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
@@ -699,6 +821,53 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
           </div>
         </div>
       </div>
+
+      <div className="flex justify-end mb-2">
+        <button className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700" onClick={() => setImportModalOpen(true)}>
+          Import Animals (CSV/Excel)
+        </button>
+      </div>
+
+      {importModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full">
+            <h2 className="text-xl font-bold mb-4">Import Animals</h2>
+            <div className="mb-2 flex gap-2">
+              <button className="text-blue-600 underline" onClick={() => downloadTemplate('csv')}>Download CSV Template</button>
+              <button className="text-blue-600 underline" onClick={() => downloadTemplate('xlsx')}>Download Excel Template</button>
+            </div>
+            <input type="file" accept=".csv,.xlsx" onChange={handleImportFile} className="mb-2" />
+            {importFileName && <div className="mb-2 text-sm text-gray-700">Selected: {importFileName}</div>}
+            {importPreview.length > 0 && (
+              <div className="mb-2">
+                <div className="font-semibold mb-1">Valid Rows:</div>
+                <table className="w-full text-xs border mb-2">
+                  <thead><tr>{templateHeaders.map(h => <th key={h} className="border px-1">{h}</th>)}</tr></thead>
+                  <tbody>
+                    {importPreview.map((row, i) => (
+                      <tr key={i}>{templateHeaders.map(h => <td key={h} className="border px-1">{row[h]}</td>)}</tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {importErrors.length > 0 && (
+              <div className="mb-2">
+                <div className="font-semibold mb-1 text-red-600">Invalid Rows:</div>
+                <ul className="text-xs text-red-700">
+                  {importErrors.map((err, i) => (
+                    <li key={i}>Row {err.row}: {err.error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="flex gap-2 justify-end mt-4">
+              <button className="px-4 py-2 rounded bg-gray-200" onClick={() => setImportModalOpen(false)}>Cancel</button>
+              <button className="px-4 py-2 rounded bg-blue-600 text-white disabled:bg-gray-300" onClick={handleImportConfirm} disabled={importPreview.length === 0}>Import</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

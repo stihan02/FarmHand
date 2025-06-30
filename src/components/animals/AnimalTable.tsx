@@ -596,6 +596,10 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     setImportFileName('');
   }
 
+  if (selectedAnimal) {
+    console.log('Rendering AnimalModal for:', selectedAnimal);
+  }
+
   return (
     <>
       <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
@@ -736,7 +740,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                   <tr
                     key={row.id}
                     className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer`}
-                    onClick={() => setSelectedAnimal(row.original)}
+                    onClick={() => { console.log('Row clicked:', row.original); setSelectedAnimal(row.original); }}
                   >
                     {row.getVisibleCells().map(cell => (
                       <td
@@ -866,6 +870,20 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
               <button className="px-4 py-2 rounded bg-blue-600 text-white disabled:bg-gray-300" onClick={handleImportConfirm} disabled={importPreview.length === 0}>Import</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {selectedAnimal && (
+        <div style={{ zIndex: 99999, position: 'relative' }}>
+          <AnimalModal
+            animal={selectedAnimal}
+            onClose={() => setSelectedAnimal(null)}
+            onUpdate={updated => {
+              dispatch({ type: 'UPDATE_ANIMAL', payload: updated });
+              setSelectedAnimal(null);
+            }}
+            allAnimals={animals}
+          />
         </div>
       )}
     </>

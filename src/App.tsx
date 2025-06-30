@@ -281,18 +281,6 @@ function AppContent() {
         />
       )}
 
-      {selectedAnimal && (
-        <AnimalModal
-          animal={selectedAnimal}
-          onClose={() => setSelectedAnimal(null)}
-          onUpdate={updated => {
-            updateAnimal(updated.id, updated);
-            setSelectedAnimal(null);
-          }}
-          allAnimals={state.animals}
-        />
-      )}
-
       {isAddAnimalModalOpen && (
         <AddAnimalForm 
           onAdd={animal => { addAnimal(animal); setAddAnimalModalOpen(false); }}

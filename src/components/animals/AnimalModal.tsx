@@ -153,6 +153,41 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
         <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 8rem)' }}>
           {activeTab === 'profile' && (
             <div className="space-y-4">
+              {/* Risk alert banner */}
+              {(() => {
+                // Inbreeding and biosecurity risk logic
+                const animalsInCamp = allAnimals.filter(a => a.campId === animal.campId);
+                const parentTags = [animal.motherTag, animal.fatherTag].filter(Boolean);
+                const siblingTags = [];
+                animalsInCamp.forEach(a => {
+                  if (a.motherTag && parentTags.includes(a.motherTag)) siblingTags.push(a.tagNumber);
+                  if (a.fatherTag && parentTags.includes(a.fatherTag)) siblingTags.push(a.tagNumber);
+                });
+                const offspringInCamp = animalsInCamp.filter(a => animal.offspringTags.includes(a.tagNumber));
+                const parentInCamp = animalsInCamp.filter(a => parentTags.includes(a.tagNumber));
+                const inbreeding = (siblingTags.length > 0 || offspringInCamp.length > 0 || parentInCamp.length > 0)
+                  ? `Inbreeding risk (${[
+                      siblingTags.length > 0 ? 'Sibling(s)' : null,
+                      offspringInCamp.length > 0 ? 'Offspring' : null,
+                      parentInCamp.length > 0 ? 'Parent' : null
+                    ].filter(Boolean).join(', ')})`
+                  : null;
+                const now = new Date();
+                const recentDisease = animalsInCamp.some(a =>
+                  a.health && a.health.some(h =>
+                    (h.type === 'Treatment' || h.type === 'Vaccination') &&
+                    (now.getTime() - new Date(h.date).getTime()) < 1000 * 60 * 60 * 24 * 30
+                  )
+                );
+                const biosecurity = recentDisease ? 'Biosecurity risk (recent disease/treatment event)' : null;
+                if (!inbreeding && !biosecurity) return null;
+                return (
+                  <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg px-3 py-2 mb-2">
+                    <AlertTriangle size={18} className="text-yellow-400" />
+                    <span className="font-medium">{[inbreeding, biosecurity].filter(Boolean).join(' | ')}</span>
+                  </div>
+                );
+              })()}
               <button
                 className="bg-yellow-500 text-white px-3 py-2 rounded shadow hover:bg-yellow-600 w-full mb-2"
                 onClick={() => setReminderModalOpen(true)}

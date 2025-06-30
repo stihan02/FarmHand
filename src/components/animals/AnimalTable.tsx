@@ -356,22 +356,6 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
       size: 120,
     }),
     columnHelper.display({
-      id: 'alerts',
-      header: 'Alerts',
-      cell: ({ row }) => {
-        const animal = row.original;
-        const inbreeding = getInbreedingAlert(animal);
-        const biosecurity = getBiosecurityAlert(animal);
-        if (!inbreeding && !biosecurity) return null;
-        return (
-          <span title={[inbreeding, biosecurity].filter(Boolean).join(' | ')} style={{ color: '#eab308', cursor: 'help' }}>
-            <AlertTriangle size={18} />
-          </span>
-        );
-      },
-      size: 50,
-    }),
-    columnHelper.display({
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {

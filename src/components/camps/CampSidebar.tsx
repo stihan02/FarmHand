@@ -151,46 +151,20 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
       >
         ×
       </button>
-      <h2 className="mt-0 mb-2 font-bold text-2xl sm:text-3xl">{camp.name}</h2>
+      <h2 className="mt-0 mb-2 font-bold text-2xl sm:text-3xl flex items-center gap-2">
+        {camp.name}
+        {(inbreedingAlerts.length > 0 || biosecurityAlerts.length > 0) && (
+          <span title={`Camp risks: ${[...inbreedingAlerts, ...biosecurityAlerts].join(' | ')}`}
+                className="ml-2 cursor-help">
+            <AlertTriangle size={20} className="text-yellow-400" />
+          </span>
+        )}
+      </h2>
       <div className="mb-4 text-gray-700 text-base sm:text-lg">
         <strong>Area:</strong> <span className="text-emerald-700">{areaHa.toFixed(2)} ha</span>
       </div>
       <div className="mb-4 text-gray-700 text-base sm:text-lg">
         <strong>Animals in camp:</strong>
-        {(inbreedingAlerts.length > 0 || biosecurityAlerts.length > 0) && (
-          <div className="mt-2 mb-4 bg-yellow-50 border border-yellow-300 rounded-lg p-4">
-            <div className="flex items-center mb-4">
-              <AlertTriangle size={20} className="text-yellow-400 mr-2" />
-              <strong className="text-yellow-800">Alerts</strong>
-            </div>
-            {inbreedingAlerts.length > 0 && (
-              <div className="mb-2">
-                <span className="font-medium">Inbreeding risks:</span>
-                <ul className="list-disc pl-6">
-                  {inbreedingAlerts.map((alert, idx) => (
-                    <li key={idx} className="flex items-center">
-                      <AlertTriangle size={15} className="text-yellow-400 mr-2" />
-                      {alert}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {biosecurityAlerts.length > 0 && (
-              <div>
-                <span className="font-medium">Biosecurity risks:</span>
-                <ul className="list-disc pl-6">
-                  {biosecurityAlerts.map((alert, idx) => (
-                    <li key={idx} className="flex items-center">
-                      <AlertTriangle size={15} className="text-yellow-400 mr-2" />
-                      {alert}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
         <div className="flex gap-4 mt-2">
           <div title={UNIT_INFO.LSU} className="cursor-help flex items-center gap-2">
             <span className="font-medium">LSU:</span> {lsuCount}

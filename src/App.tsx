@@ -23,7 +23,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { StatsCard } from './components/StatsCard';
 import { CampManagement } from './components/camps/CampManagement';
 import InventoryList from './components/inventory/InventoryList';
-import Alerts from './components/Alerts';
 import { AnimalModal } from './components/animals/AnimalModal';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
@@ -161,7 +160,6 @@ function AppContent() {
       setActiveTab={setActiveTab}
     >
       <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full">
-        <Alerts />
         {activeTab === 'dashboard' && <StatsCard />}
         {activeTab === 'animals' && (
           <div className="space-y-6">

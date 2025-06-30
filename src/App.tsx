@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Layout } from './components/Layout';
 import { FarmProvider, useFarm } from './context/FarmContext';
-import { AIAssistant } from './components/ai/AIAssistant';
 import { AnimalTable } from './components/animals/AnimalTable';
-import { AnimalModal } from './components/animals/AnimalModal';
 import { AddAnimalForm } from './components/animals/AddAnimalForm';
 import { TransactionCard } from './components/finances/TransactionCard';
 import { AddTransactionForm } from './components/finances/AddTransactionForm';
@@ -26,21 +24,21 @@ import { StatsCard } from './components/StatsCard';
 import { CampManagement } from './components/camps/CampManagement';
 import InventoryList from './components/inventory/InventoryList';
 import Alerts from './components/Alerts';
+import { AnimalModal } from './components/animals/AnimalModal';
 
-type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'stud' | 'camps' | 'inventory';
+type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
 
 function AppContent() {
   const { state, dispatch } = useFarm();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
-  const [isAddAnimalModalOpen, setAddAnimalModalOpen] = useState(false);
   const [isBulkUpdate, setIsBulkUpdate] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [campFilter, setCampFilter] = useState('All');
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [eventModalTags, setEventModalTags] = useState<string[]>([]);
-  const [aiOpen, setAiOpen] = useState(false);
+  const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
+  const [isAddAnimalModalOpen, setAddAnimalModalOpen] = useState(false);
 
   const addAnimal = (animal: Animal) => {
     dispatch({ type: 'ADD_ANIMAL', payload: animal });
@@ -76,16 +74,6 @@ function AppContent() {
     if (confirm(`Are you sure you want to remove ${animal.type} (Tag: ${animal.tagNumber})?`)) {
       dispatch({ type: 'REMOVE_ANIMAL', payload: animal.id });
     }
-  };
-
-  const handleMarkSold = (animal: Animal) => {
-    setSelectedAnimal(animal);
-    setIsBulkUpdate(false);
-  };
-  
-  const handleMarkDeceased = (animal: Animal) => {
-    setSelectedAnimal(animal);
-    setIsBulkUpdate(false);
   };
 
   const handleMoveToCamp = (animalIds: string[], campId: string) => {
@@ -170,65 +158,64 @@ function AppContent() {
     >
       <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full">
         <Alerts />
-        {activeTab === 'dashboard' && <StatsCard onOpenAiAssistant={() => setAiOpen(true)} />}
+        {activeTab === 'dashboard' && <StatsCard />}
         {activeTab === 'animals' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   Animals ({filteredAnimals.length})
               </h2>
-                <button 
-                  onClick={() => setAddAnimalModalOpen(true)}
-                  className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700"
-                >
-                  Add Animal
-                </button>
-              </div>
-              <AnimalTable
-                animals={filteredAnimals}
-                onViewProfile={setSelectedAnimal}
-                onMarkSold={handleMarkSold}
-                onMarkDeceased={handleMarkDeceased}
-                onRemove={removeAnimal}
-                onMoveToCamp={handleMoveToCamp}
-                searchTerm={searchTerm}
-                statusFilter={statusFilter}
-                campFilter={campFilter}
-                onScheduleEventClick={handleScheduleEvent}
-              />
+              <button 
+                onClick={() => setAddAnimalModalOpen(true)}
+                className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700"
+              >
+                Add Animal
+              </button>
             </div>
-          )}
-          {activeTab === 'camps' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Camp Management</h2>
-              <CampManagement
-                camps={state.camps}
-                onAddCamp={addCamp}
-                onUpdateCamp={updateCamp}
-                onDeleteCamp={deleteCamp}
-              />
+            <AnimalTable
+              animals={filteredAnimals}
+              onMarkSold={animal => setSelectedAnimal(animal)}
+              onMarkDeceased={animal => setSelectedAnimal(animal)}
+              onRemove={removeAnimal}
+              onMoveToCamp={handleMoveToCamp}
+              searchTerm={searchTerm}
+              statusFilter={statusFilter}
+              campFilter={campFilter}
+              onScheduleEventClick={handleScheduleEvent}
+            />
+          </div>
+        )}
+        {activeTab === 'camps' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Camp Management</h2>
+            <CampManagement
+              camps={state.camps}
+              onAddCamp={addCamp}
+              onUpdateCamp={updateCamp}
+              onDeleteCamp={deleteCamp}
+            />
+          </div>
+        )}
+        {activeTab === 'finances' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Finances ({filteredTransactions.length})
+              </h2>
+              <AddTransactionForm onAdd={addTransaction} />
             </div>
-          )}
-          {activeTab === 'finances' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Finances ({filteredTransactions.length})
-                </h2>
-                <AddTransactionForm onAdd={addTransaction} />
-              </div>
-              
-              {filteredTransactions.length === 0 ? (
-                <div className="text-center py-12">
-                  <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No transactions found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {searchTerm 
-                    ? 'Try adjusting your search'
-                    : 'Start tracking your farm finances'
-                  }
-                </p>
-              </div>
+            
+            {filteredTransactions.length === 0 ? (
+              <div className="text-center py-12">
+                <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No transactions found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {searchTerm 
+                  ? 'Try adjusting your search'
+                  : 'Start tracking your farm finances'
+                }
+              </p>
+            </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredTransactions.map(transaction => (
@@ -294,17 +281,26 @@ function AppContent() {
         />
       )}
 
+      {selectedAnimal && (
+        <AnimalModal
+          animal={selectedAnimal}
+          onClose={() => setSelectedAnimal(null)}
+          onUpdate={updated => {
+            updateAnimal(updated.id, updated);
+            setSelectedAnimal(null);
+          }}
+          allAnimals={state.animals}
+        />
+      )}
+
       {isAddAnimalModalOpen && (
         <AddAnimalForm 
-          onAdd={addAnimal} 
+          onAdd={animal => { addAnimal(animal); setAddAnimalModalOpen(false); }}
           onClose={() => setAddAnimalModalOpen(false)}
           existingTags={state.animals.map(a => a.tagNumber)}
           camps={state.camps.map(c => ({ id: c.id, name: c.name }))}
         />
       )}
-
-      {/* AI Assistant floating button/panel */}
-      <AIAssistant open={aiOpen} setOpen={setAiOpen} />
     </Layout>
   );
 }
@@ -333,8 +329,6 @@ function App() {
   return (
     <FarmProvider>
       <ErrorBoundary>
-        {/* TEMP: Test div to confirm rendering works on Vercel */}
-        <div style={{ background: '#e0e0e0', padding: 16, marginBottom: 16 }}>If you see this, React is rendering correctly.</div>
         <AppContent />
       </ErrorBoundary>
     </FarmProvider>

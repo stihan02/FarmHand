@@ -85,6 +85,60 @@ const AddEditInventoryModal: React.FC<AddEditInventoryModalProps> = ({ open, onC
             <p className="text-sm">{error}</p>
           </div>
         )}
+        {isEdit && (
+          <div className="flex flex-col gap-3 mb-4 md:hidden">
+            <button
+              className="w-full bg-yellow-600 text-white py-3 rounded-lg font-bold text-lg shadow-md active:bg-yellow-700 transition"
+              onClick={() => {
+                if (window.confirm('Mark this item as USED UP? This will set quantity to 0.')) {
+                  onSave({
+                    ...initialData,
+                    name: initialData.name || '',
+                    category: initialData.category || 'other',
+                    unit: initialData.unit || '',
+                    quantity: 0,
+                    notes: (initialData.notes || '') + '\nUsed up (quick action)',
+                  });
+                  onClose();
+                }
+              }}
+            >Mark as Used Up</button>
+            <button
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg shadow-md active:bg-blue-700 transition"
+              onClick={() => {
+                if (window.confirm('Mark this item as SOLD? This will set quantity to 0.')) {
+                  onSave({
+                    ...initialData,
+                    name: initialData.name || '',
+                    category: initialData.category || 'other',
+                    unit: initialData.unit || '',
+                    quantity: 0,
+                    notes: (initialData.notes || '') + '\nSold (quick action)',
+                  });
+                  onClose();
+                }
+              }}
+            >Mark as Sold</button>
+            <button
+              className="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg shadow-md active:bg-green-700 transition"
+              onClick={() => {
+                const qty = prompt('How many units to restock?');
+                const addQty = qty ? parseInt(qty, 10) : 0;
+                if (addQty > 0) {
+                  onSave({
+                    ...initialData,
+                    name: initialData.name || '',
+                    category: initialData.category || 'other',
+                    unit: initialData.unit || '',
+                    quantity: (initialData.quantity || 0) + addQty,
+                    notes: (initialData.notes || '') + `\nRestocked +${addQty} (quick action)`,
+                  });
+                  onClose();
+                }
+              }}
+            >Restock</button>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>

@@ -36,7 +36,6 @@ import { differenceInDays, parseISO } from 'date-fns';
 
 interface AnimalTableProps {
   animals: Animal[];
-  onViewProfile: (animal: Animal) => void;
   onMarkSold: (animal: Animal) => void;
   onMarkDeceased: (animal: Animal) => void;
   onRemove: (animal: Animal) => void;
@@ -113,7 +112,6 @@ const CampCellEditor: React.FC<{
 
 export const AnimalTable: React.FC<AnimalTableProps> = ({
   animals,
-  onViewProfile,
   onMarkSold,
   onMarkDeceased,
   onRemove,
@@ -376,7 +374,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                 />
                 <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-20 min-w-[160px]">
                   <button
-                    onClick={e => { e.stopPropagation(); onViewProfile(animal); setActiveDropdown(null); }}
+                    onClick={e => { e.stopPropagation(); setActiveDropdown(null); }}
                     className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2 dark:text-gray-200"
                   >
                     <Eye className="h-4 w-4" />
@@ -385,14 +383,14 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                   {animal.status === 'Active' && (
                     <>
                       <button
-                        onClick={e => { e.stopPropagation(); onMarkSold(animal); setActiveDropdown(null); }}
+                        onClick={e => { e.stopPropagation(); setActiveDropdown(null); }}
                         className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2 dark:text-gray-200"
                       >
                         <DollarSign className="h-4 w-4" />
                         <span>Mark Sold</span>
                       </button>
                       <button
-                        onClick={e => { e.stopPropagation(); onMarkDeceased(animal); setActiveDropdown(null); }}
+                        onClick={e => { e.stopPropagation(); setActiveDropdown(null); }}
                         className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2 dark:text-gray-200"
                       >
                         <Skull className="h-4 w-4" />
@@ -401,7 +399,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                     </>
                   )}
                   <button
-                    onClick={e => { e.stopPropagation(); onRemove(animal); setActiveDropdown(null); }}
+                    onClick={e => { e.stopPropagation(); setActiveDropdown(null); }}
                     className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50 flex items-center space-x-2"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -415,7 +413,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
       },
       size: 50,
     }),
-  ], [activeDropdown, farmState.camps, onViewProfile, onMarkSold, onMarkDeceased, onRemove]);
+  ], [activeDropdown, farmState.camps, onMarkSold, onMarkDeceased, onRemove]);
 
   const table = useReactTable({
     data: animals,
@@ -464,7 +462,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     const selectedAnimalIds = table.getSelectedRowModel().flatRows.map(row => row.original.id);
     
     if (!farmState.camps.includes(newCampName.trim())) {
-      dispatch({ type: 'ADD_CAMP', payload: newCampName.trim() });
+      dispatch({ type: 'ADD_CAMP', payload: { id: newCampName.trim().toLowerCase().replace(/\s+/g, '-'), name: newCampName.trim(), geoJson: { type: 'Feature', geometry: { type: 'Polygon', coordinates: [] } }, animals: [] } });
     }
     
     onMoveToCamp(selectedAnimalIds, newCampName.trim());
@@ -613,7 +611,6 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                 <tr
                   key={row.id}
                   className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer`}
-                  onClick={() => onViewProfile(row.original)}
                 >
                   {row.getVisibleCells().map(cell => (
                     <td

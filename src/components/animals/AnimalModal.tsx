@@ -40,7 +40,7 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
     
     const updatedAnimal: Animal = {
       ...animal,
-      status: 'Sold',
+      status: 'Sold' as const,
       salePrice: parseFloat(sellData.price),
       saleDate: sellData.date,
       history: [...animal.history, {
@@ -61,7 +61,7 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
     
     const updatedAnimal: Animal = {
       ...animal,
-      status: 'Deceased',
+      status: 'Deceased' as const,
       deceasedReason: deceasedData.reason,
       deceasedDate: deceasedData.date,
       history: [...animal.history, {
@@ -133,7 +133,7 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'profile' | 'sell' | 'deceased' | 'history')}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center space-x-2 ${
                   activeTab === tab.id
                     ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
@@ -227,6 +227,49 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
                   <h4 className="font-medium text-red-900 dark:text-red-200 mb-2">Deceased Information</h4>
                   <p className="text-sm text-red-800 dark:text-red-300">Reason: {animal.deceasedReason}</p>
                   <p className="text-sm text-red-800 dark:text-red-300">Date: {formatDate(animal.deceasedDate!)}</p>
+                </div>
+              )}
+
+              {activeTab === 'profile' && animal.status === 'Active' && (
+                <div className="flex flex-col gap-3 mb-4 md:hidden">
+                  <button
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg shadow-md active:bg-blue-700 transition"
+                    onClick={() => {
+                      if (window.confirm('Mark this animal as SOLD?')) {
+                        const updatedAnimal = {
+                          ...animal,
+                          status: 'Sold' as const,
+                          salePrice: 0,
+                          saleDate: new Date().toISOString().split('T')[0],
+                          history: [...animal.history, {
+                            date: new Date().toISOString().split('T')[0],
+                            description: `Sold (quick action)`
+                          }]
+                        };
+                        onUpdate(updatedAnimal);
+                        onClose();
+                      }
+                    }}
+                  >Mark as Sold</button>
+                  <button
+                    className="w-full bg-red-600 text-white py-3 rounded-lg font-bold text-lg shadow-md active:bg-red-700 transition"
+                    onClick={() => {
+                      if (window.confirm('Mark this animal as DECEASED?')) {
+                        const updatedAnimal = {
+                          ...animal,
+                          status: 'Deceased' as const,
+                          deceasedReason: 'Deceased (quick action)',
+                          deceasedDate: new Date().toISOString().split('T')[0],
+                          history: [...animal.history, {
+                            date: new Date().toISOString().split('T')[0],
+                            description: `Deceased (quick action)`
+                          }]
+                        };
+                        onUpdate(updatedAnimal);
+                        onClose();
+                      }
+                    }}
+                  >Mark as Deceased</button>
                 </div>
               )}
             </div>

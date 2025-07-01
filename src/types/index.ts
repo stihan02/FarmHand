@@ -19,6 +19,7 @@ export interface Animal {
   genetics: GeneticInfo;
   health: HealthRecord[];
   history: HistoryEvent[];
+  photoUrl?: string;
 }
 
 export interface GeneticInfo {

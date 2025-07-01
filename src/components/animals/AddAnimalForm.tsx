@@ -21,6 +21,7 @@ const emptyForm = {
   fatherTag: '',
   campId: '',
   otherType: '',
+  photoUrl: '',
 };
 
 export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, onClose, existingTags, camps }) => {
@@ -33,6 +34,16 @@ export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, onClose, ex
     if (name === 'type' && value !== 'Other') {
       setForm(prev => ({ ...prev, otherType: '' }));
     }
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setForm(prev => ({ ...prev, photoUrl: event.target?.result as string }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const validateForm = () => {
@@ -84,6 +95,7 @@ export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, onClose, ex
       genetics: { traits: {}, lineage: [], notes: '', animalTagNumbers: [] },
       health: [],
       history: [],
+      photoUrl: form.photoUrl || undefined,
     };
     onAdd(newAnimal);
     setForm(emptyForm);
@@ -237,6 +249,22 @@ export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, onClose, ex
               </select>
           </div>
             
+        </div>
+
+        {/* Photo upload */}
+        <div>
+          <label htmlFor="photo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Photo (Optional)</label>
+          <input
+            type="file"
+            id="photo"
+            name="photo"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="mt-1 block w-full text-sm text-gray-700 dark:text-gray-300"
+          />
+          {form.photoUrl && (
+            <img src={form.photoUrl} alt="Preview" className="mt-2 rounded max-h-32 object-contain border" />
+          )}
         </div>
 
           <div className="flex justify-end pt-2">

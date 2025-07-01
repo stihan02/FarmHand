@@ -153,6 +153,12 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
         <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 8rem)' }}>
           {activeTab === 'profile' && (
             <div className="space-y-4">
+              {/* Animal photo */}
+              {animal.photoUrl && (
+                <div className="flex justify-center">
+                  <img src={animal.photoUrl} alt="Animal" className="rounded max-h-40 object-contain border" />
+                </div>
+              )}
               {/* Risk alert banner */}
               {(() => {
                 // Inbreeding and biosecurity risk logic

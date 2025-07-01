@@ -67,7 +67,15 @@ export const exportToCSV = (data: any[], filename: string) => {
 };
 
 export const isOverdue = (dueDate: string): boolean => {
-  return new Date(dueDate) < new Date();
+  try {
+    if (!dueDate || typeof dueDate !== 'string') return false;
+    const date = new Date(dueDate);
+    // Check if the date is valid
+    if (isNaN(date.getTime())) return false;
+    return date < new Date();
+  } catch {
+    return false;
+  }
 };
 
 export function useIsMobile(breakpoint = 640) {

@@ -446,7 +446,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
 
   const selectedRowCount = Object.keys(rowSelection).length;
   
-  useEffect(() => {
+  const memoizedFilters = useMemo(() => {
     const filters = [];
     if (searchTerm) {
       // Assuming tagNumber is the primary search field
@@ -458,8 +458,12 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     if (campFilter && campFilter !== 'All') {
       filters.push({ id: 'camp', value: campFilter });
     }
-    table.setColumnFilters(filters);
-  }, [searchTerm, statusFilter, campFilter, table]);
+    return filters;
+  }, [searchTerm, statusFilter, campFilter]);
+
+  useEffect(() => {
+    table.setColumnFilters(memoizedFilters);
+  }, [memoizedFilters]); // Only update when memoized filters actually change
 
 
   const handleCreateAndMoveCamp = () => {
@@ -580,9 +584,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     setImportFileName('');
   }
 
-  if (selectedAnimal) {
-    console.log('Rendering AnimalModal for:', selectedAnimal);
-  }
+
 
   return (
     <>
@@ -724,7 +726,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                 <tr
                   key={row.id}
                 className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer`}
-                    onClick={() => { console.log('Row clicked:', row.original); setSelectedAnimal(row.original); }}
+                    onClick={() => setSelectedAnimal(row.original)}
                 >
                   {row.getVisibleCells().map(cell => (
                   <td 

@@ -10,7 +10,7 @@ interface AddTransactionFormProps {
 export const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAdd }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
-    type: 'Income' as 'Income' | 'Expense',
+    type: 'income' as 'income' | 'expense',
     description: '',
     amount: '',
     date: new Date().toISOString().split('T')[0],
@@ -53,7 +53,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAdd })
     onAdd(newTransaction);
     setIsOpen(false);
     setFormData({
-      type: 'Income',
+      type: 'income',
       description: '',
       amount: '',
       date: new Date().toISOString().split('T')[0],
@@ -93,9 +93,9 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAdd })
           <div className="flex space-x-3">
             <button
               type="button"
-              onClick={() => handleInputChange('type', 'Income')}
+              onClick={() => handleInputChange('type', 'income')}
               className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center space-x-2 transition-colors ${
-                formData.type === 'Income' 
+                formData.type === 'income' 
                   ? 'border-emerald-500 bg-emerald-50 text-emerald-700' 
                   : 'border-gray-300 hover:border-gray-400'
               }`}
@@ -105,9 +105,9 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAdd })
             </button>
             <button
               type="button"
-              onClick={() => handleInputChange('type', 'Expense')}
+              onClick={() => handleInputChange('type', 'expense')}
               className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center space-x-2 transition-colors ${
-                formData.type === 'Expense' 
+                formData.type === 'expense' 
                   ? 'border-red-500 bg-red-50 text-red-700' 
                   : 'border-gray-300 hover:border-gray-400'
               }`}

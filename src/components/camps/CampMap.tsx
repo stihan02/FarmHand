@@ -220,44 +220,44 @@ export const CampMap: React.FC<CampMapProps & { onAnimalClick?: (animal: Animal)
             const animalsInCamp = state.animals.filter(a => a.campId === camp.id && a.status === 'Active');
             return (
               <React.Fragment key={camp.id || idx}>
-                <Polygon
-                  positions={camp.geoJson.geometry.coordinates[0].map(([lng, lat]: [number, number]) => [lat, lng])}
-                >
-                  <Popup>
-                    <strong>{camp.name}</strong>
-                    <br />
-                    Area: {areaHa.toFixed(2)} ha
-                    <br />
-                    Animals: {animalCount}
-                    <br />
-                    {warning && <span style={{ color: 'red' }}>{warning}<br /></span>}
-                    <button
-                      style={{
-                        marginTop: 4,
-                        color: '#1565c0',
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        fontSize: 15,
-                        fontWeight: 600,
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
-                        transition: 'color 0.2s',
-                        display: 'inline-block',
-                      }}
-                      onMouseOver={e => (e.currentTarget.style.color = '#003c8f')}
-                      onMouseOut={e => (e.currentTarget.style.color = '#1565c0')}
-                      onClick={e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        props.onViewDetails && props.onViewDetails(camp);
-                      }}
-                    >
-                      View Details
-                    </button>
-                    <br />
-                    <button onClick={() => props.onDeleteCamp(camp.id || idx)} style={{ color: 'red', marginTop: 4 }}>Delete</button>
-                  </Popup>
+              <Polygon
+                positions={camp.geoJson.geometry.coordinates[0].map(([lng, lat]: [number, number]) => [lat, lng])}
+              >
+                <Popup>
+                  <strong>{camp.name}</strong>
+                  <br />
+                  Area: {areaHa.toFixed(2)} ha
+                  <br />
+                  Animals: {animalCount}
+                  <br />
+                  {warning && <span style={{ color: 'red' }}>{warning}<br /></span>}
+                  <button
+                    style={{
+                      marginTop: 4,
+                      color: '#1565c0',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      fontSize: 15,
+                      fontWeight: 600,
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      transition: 'color 0.2s',
+                      display: 'inline-block',
+                    }}
+                    onMouseOver={e => (e.currentTarget.style.color = '#003c8f')}
+                    onMouseOut={e => (e.currentTarget.style.color = '#1565c0')}
+                    onClick={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      props.onViewDetails && props.onViewDetails(camp);
+                    }}
+                  >
+                    View Details
+                  </button>
+                  <br />
+                  <button onClick={() => props.onDeleteCamp(camp.id || idx)} style={{ color: 'red', marginTop: 4 }}>Delete</button>
+                </Popup>
                   {/* Render animal markers for this camp */}
                   {animalsInCamp.map(animal => {
                     // Use animal.position if available, else camp centroid
@@ -284,7 +284,7 @@ export const CampMap: React.FC<CampMapProps & { onAnimalClick?: (animal: Animal)
                       </Marker>
                     );
                   })}
-                </Polygon>
+              </Polygon>
               </React.Fragment>
             );
           })}

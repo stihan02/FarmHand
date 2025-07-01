@@ -26,7 +26,7 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
   }
 
   // Get animals in this camp from context
-  const { state } = useFarm();
+  const { state, dispatch } = useFarm();
   const animalsInCamp = state.animals.filter(a => a.campId === camp.id);
 
   // For demo, group all animals as LSU or SSU by type
@@ -124,6 +124,9 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
 
   const isMobile = useIsMobile(640);
 
+  const [editingAnimalId, setEditingAnimalId] = useState<string | null>(null);
+  const [grazingDate, setGrazingDate] = useState('');
+
   return (
     <div
       className={
@@ -184,6 +187,70 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
           <div className="mt-4 text-gray-700 text-base sm:text-lg">
             <strong>Grazing Duration:</strong><br />
             <span>Min: {minGrazing}d &nbsp;|&nbsp; Max: {maxGrazing}d &nbsp;|&nbsp; Avg: {avgGrazing}d</span>
+            <div className="mt-2 space-y-2">
+              {animalsInCamp.map(animal => {
+                const moveEvents = animal.history.filter(e => e.description.includes('Moved from camp')).reverse();
+                let grazingStart = null;
+                for (const event of moveEvents) {
+                  if (event.description.endsWith(`to ${camp.id}`)) {
+                    grazingStart = event.date;
+                    break;
+                  }
+                }
+                const days = grazingStart ? Math.floor((new Date().getTime() - new Date(grazingStart).getTime()) / (1000 * 60 * 60 * 24)) : null;
+                return (
+                  <div key={animal.id} className="flex items-center gap-2">
+                    <span className="font-mono">Tag #{animal.tagNumber}:</span>
+                    <span>{days === null ? '—' : (days === 0 ? 'Today' : `${days} day${days !== 1 ? 's' : ''}`)}</span>
+                    <button
+                      className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                      onClick={() => {
+                        setEditingAnimalId(animal.id);
+                        setGrazingDate(grazingStart || new Date().toISOString().split('T')[0]);
+                      }}
+                      type="button"
+                    >Edit</button>
+                    {editingAnimalId === animal.id && (
+                      <div className="flex gap-2 items-center ml-2">
+                        <input
+                          type="date"
+                          value={grazingDate}
+                          onChange={e => setGrazingDate(e.target.value)}
+                          className="border rounded px-2 py-1"
+                        />
+                        <button
+                          className="px-2 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+                          onClick={() => {
+                            let found = false;
+                            const newHistory = animal.history.map(ev => {
+                              if (!found && ev.description.includes('Moved from camp') && ev.description.endsWith(`to ${camp.id}`)) {
+                                found = true;
+                                return { ...ev, date: grazingDate };
+                              }
+                              return ev;
+                            });
+                            if (!found) {
+                              newHistory.push({
+                                date: grazingDate,
+                                description: `Moved from camp unknown to ${camp.id}`
+                              });
+                            }
+                            dispatch({ type: 'UPDATE_ANIMAL', payload: { ...animal, history: newHistory } });
+                            setEditingAnimalId(null);
+                          }}
+                          type="button"
+                        >Save</button>
+                        <button
+                          className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                          onClick={() => setEditingAnimalId(null)}
+                          type="button"
+                        >Cancel</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

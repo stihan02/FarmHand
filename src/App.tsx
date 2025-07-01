@@ -167,57 +167,57 @@ function AppContent() {
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   Animals ({filteredAnimals.length})
               </h2>
-              <button 
-                onClick={() => setAddAnimalModalOpen(true)}
-                className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700"
-              >
-                Add Animal
-              </button>
-            </div>
-            <AnimalTable
-              animals={filteredAnimals}
+                <button 
+                  onClick={() => setAddAnimalModalOpen(true)}
+                  className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700"
+                >
+                  Add Animal
+                </button>
+              </div>
+              <AnimalTable
+                animals={filteredAnimals}
               onMarkSold={animal => setSelectedAnimal(animal)}
               onMarkDeceased={animal => setSelectedAnimal(animal)}
-              onRemove={removeAnimal}
-              onMoveToCamp={handleMoveToCamp}
-              searchTerm={searchTerm}
-              statusFilter={statusFilter}
-              campFilter={campFilter}
-              onScheduleEventClick={handleScheduleEvent}
-            />
-          </div>
-        )}
-        {activeTab === 'camps' && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Camp Management</h2>
-            <CampManagement
-              camps={state.camps}
-              onAddCamp={addCamp}
-              onUpdateCamp={updateCamp}
-              onDeleteCamp={deleteCamp}
-            />
-          </div>
-        )}
-        {activeTab === 'finances' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                Finances ({filteredTransactions.length})
-              </h2>
-              <AddTransactionForm onAdd={addTransaction} />
+                onRemove={removeAnimal}
+                onMoveToCamp={handleMoveToCamp}
+                searchTerm={searchTerm}
+                statusFilter={statusFilter}
+                campFilter={campFilter}
+                onScheduleEventClick={handleScheduleEvent}
+              />
             </div>
-            
-            {filteredTransactions.length === 0 ? (
-              <div className="text-center py-12">
-                <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No transactions found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {searchTerm 
-                  ? 'Try adjusting your search'
-                  : 'Start tracking your farm finances'
-                }
-              </p>
+          )}
+          {activeTab === 'camps' && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Camp Management</h2>
+              <CampManagement
+                camps={state.camps}
+                onAddCamp={addCamp}
+                onUpdateCamp={updateCamp}
+                onDeleteCamp={deleteCamp}
+              />
             </div>
+          )}
+          {activeTab === 'finances' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Finances ({filteredTransactions.length})
+                </h2>
+                <AddTransactionForm onAdd={addTransaction} />
+              </div>
+              
+              {filteredTransactions.length === 0 ? (
+                <div className="text-center py-12">
+                  <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No transactions found</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {searchTerm 
+                    ? 'Try adjusting your search'
+                    : 'Start tracking your farm finances'
+                  }
+                </p>
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredTransactions.map(transaction => (
@@ -234,7 +234,7 @@ function AppContent() {
         {activeTab === 'tasks' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Tasks ({filteredTasks.length})
               </h2>
               <div className="flex gap-2">
@@ -244,7 +244,7 @@ function AppContent() {
                 >
                   Set Reminder
                 </button>
-                <AddTaskForm onAdd={addTask} />
+              <AddTaskForm onAdd={addTask} />
               </div>
             </div>
             
@@ -377,7 +377,7 @@ function App() {
   return (
     <FarmProvider>
       <ErrorBoundary>
-        <AppContent />
+      <AppContent />
       </ErrorBoundary>
     </FarmProvider>
   );

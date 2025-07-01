@@ -27,6 +27,9 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
   const [reminderModalOpen, setReminderModalOpen] = useState(false);
   const [reminderDesc, setReminderDesc] = useState('');
   const [reminderDate, setReminderDate] = useState('');
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [editingGrazing, setEditingGrazing] = useState(false);
+  const [grazingDate, setGrazingDate] = useState('');
 
   // Find offspring animals
   const offspring = allAnimals.filter(a => a.motherTag === animal.tagNumber || a.fatherTag === animal.tagNumber);
@@ -98,6 +101,19 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
     onUpdate(updatedAnimal);
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const updatedAnimal = { ...animal, photoUrl: event.target?.result as string };
+      onUpdate(updatedAnimal);
+      setPhotoUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const typeEmojis: Record<string, string> = {
     Sheep: '🐑',
     Cattle: '🐄',
@@ -155,10 +171,29 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
             <div className="space-y-4">
               {/* Animal photo */}
               {animal.photoUrl && (
-                <div className="flex justify-center">
+                <div className="flex flex-col items-center">
                   <img src={animal.photoUrl} alt="Animal" className="rounded max-h-40 object-contain border" />
+                  <button
+                    className="mt-2 text-xs text-red-500 hover:underline"
+                    onClick={() => onUpdate({ ...animal, photoUrl: undefined })}
+                    type="button"
+                  >Remove Photo</button>
                 </div>
               )}
+              {/* Photo upload */}
+              <div className="mt-2">
+                <label htmlFor="animal-photo-upload" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{animal.photoUrl ? 'Change Photo' : 'Add Photo'}</label>
+                <input
+                  id="animal-photo-upload"
+                  name="animal-photo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                  disabled={photoUploading}
+                />
+                {photoUploading && <div className="text-xs text-gray-400 mt-1">Uploading...</div>}
+              </div>
               {/* Risk alert banner */}
               {(() => {
                 // Inbreeding and biosecurity risk logic
@@ -279,6 +314,78 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
                   <p className="text-sm text-red-800 dark:text-red-300">Date: {formatDate(animal.deceasedDate!)}</p>
                 </div>
               )}
+
+              <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg mt-2">
+                <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Grazing Duration</label>
+                <div className="flex items-center gap-2">
+                  <span>
+                    {(() => {
+                      const moveEvents = animal.history.filter(e => e.description.includes('Moved from camp')).reverse();
+                      for (const event of moveEvents) {
+                        if (event.description.endsWith(`to ${animal.campId}`)) {
+                          const days = Math.floor((new Date().getTime() - new Date(event.date).getTime()) / (1000 * 60 * 60 * 24));
+                          return days === 0 ? 'Today' : `${days} day${days !== 1 ? 's' : ''}`;
+                        }
+                      }
+                      return '—';
+                    })()}
+                  </span>
+                  <button
+                    className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                    onClick={() => {
+                      setEditingGrazing(true);
+                      // Pre-fill with last move event date if available
+                      const moveEvents = animal.history.filter(e => e.description.includes('Moved from camp')).reverse();
+                      for (const event of moveEvents) {
+                        if (event.description.endsWith(`to ${animal.campId}`)) {
+                          setGrazingDate(event.date);
+                          return;
+                        }
+                      }
+                      setGrazingDate(new Date().toISOString().split('T')[0]);
+                    }}
+                    type="button"
+                  >Edit</button>
+                </div>
+                {editingGrazing && (
+                  <div className="mt-2 flex gap-2 items-center">
+                    <input
+                      type="date"
+                      value={grazingDate}
+                      onChange={e => setGrazingDate(e.target.value)}
+                      className="border rounded px-2 py-1"
+                    />
+                    <button
+                      className="px-2 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+                      onClick={() => {
+                        // Update or add move event
+                        let found = false;
+                        const newHistory = animal.history.map(ev => {
+                          if (!found && ev.description.includes('Moved from camp') && ev.description.endsWith(`to ${animal.campId}`)) {
+                            found = true;
+                            return { ...ev, date: grazingDate };
+                          }
+                          return ev;
+                        });
+                        if (!found) {
+                          newHistory.push({
+                            date: grazingDate,
+                            description: `Moved from camp unknown to ${animal.campId}`
+                          });
+                        }
+                        onUpdate({ ...animal, history: newHistory });
+                        setEditingGrazing(false);
+                      }}
+                      type="button"
+                    >Save</button>
+                    <button
+                      className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                      onClick={() => setEditingGrazing(false)}
+                      type="button"
+                    >Cancel</button>
+                  </div>
+                )}
+              </div>
 
               {activeTab === 'profile' && animal.status === 'Active' && (
                 <div className="flex flex-col gap-3 mb-4 md:hidden">

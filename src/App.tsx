@@ -28,6 +28,7 @@ import { HFTestButton } from './components/ai/HFTestButton';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthForm } from './components/Auth/AuthForm';
 import { FeedbackButton } from './components/FeedbackButton';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
 
@@ -182,7 +183,12 @@ function FarmAppContent() {
       setActiveTab={setActiveTab}
     >
       <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full">
-        {activeTab === 'dashboard' && <StatsCard />}
+        {activeTab === 'dashboard' && (
+          <>
+            <StatsCard />
+            <AnalyticsDashboard />
+          </>
+        )}
         {activeTab === 'animals' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">

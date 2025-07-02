@@ -46,9 +46,15 @@ Respond in clear, actionable bullet points where possible.`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: buildPrompt() })
       });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        // If response is not JSON, show a friendly error
+        const text = await res.text();
+        throw new Error(text || 'Invalid server response');
+      }
       if (data.error) throw new Error(data.error);
-      // Ollama streams responses, but for now just show the 'response' field
       setResponse(data.response || JSON.stringify(data));
     } catch (err: any) {
       setError(err.message || 'AI request failed');

@@ -31,6 +31,24 @@ import { AuthForm } from './components/Auth/AuthForm';
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
 
 function AppContent() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+  if (!user) {
+    return <AuthForm />;
+  }
+
+  // All farm state logic must be inside FarmProvider
+  return (
+    <FarmProvider>
+      <FarmAppContent />
+    </FarmProvider>
+  );
+}
+
+function FarmAppContent() {
   const { state, dispatch } = useFarm();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isBulkUpdate, setIsBulkUpdate] = useState(false);
@@ -45,15 +63,6 @@ function AppContent() {
   const [reminderDesc, setReminderDesc] = useState('');
   const [reminderDate, setReminderDate] = useState('');
   const [reminderAnimal, setReminderAnimal] = useState('');
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-
-  if (!user) {
-    return <AuthForm />;
-  }
 
   const addAnimal = (animal: Animal) => {
     dispatch({ type: 'ADD_ANIMAL', payload: animal });
@@ -167,70 +176,69 @@ function AppContent() {
   );
 
   return (
-    <FarmProvider>
-      <Layout 
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      >
-        <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full">
-          {activeTab === 'dashboard' && <StatsCard />}
-          {activeTab === 'animals' && (
+    <Layout 
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+    >
+      <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full">
+        {activeTab === 'dashboard' && <StatsCard />}
+        {activeTab === 'animals' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Animals ({filteredAnimals.length})
+              </h2>
+                <button 
+                  onClick={() => setAddAnimalModalOpen(true)}
+                  className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700"
+                >
+                  Add Animal
+                </button>
+              </div>
+              <AnimalTable
+                animals={filteredAnimals}
+              onMarkSold={animal => setSelectedAnimal(animal)}
+              onMarkDeceased={animal => setSelectedAnimal(animal)}
+                onRemove={removeAnimal}
+                onMoveToCamp={handleMoveToCamp}
+                searchTerm={searchTerm}
+                statusFilter={statusFilter}
+                campFilter={campFilter}
+                onScheduleEventClick={handleScheduleEvent}
+              />
+            </div>
+          )}
+          {activeTab === 'camps' && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Animals ({filteredAnimals.length})
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Camp Management</h2>
+              <CampManagement
+                camps={state.camps}
+                onAddCamp={addCamp}
+                onUpdateCamp={updateCamp}
+                onDeleteCamp={deleteCamp}
+              />
+            </div>
+          )}
+          {activeTab === 'finances' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Finances ({filteredTransactions.length})
                 </h2>
-                  <button 
-                    onClick={() => setAddAnimalModalOpen(true)}
-                    className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700"
-                  >
-                    Add Animal
-                  </button>
-                </div>
-                <AnimalTable
-                  animals={filteredAnimals}
-                onMarkSold={animal => setSelectedAnimal(animal)}
-                onMarkDeceased={animal => setSelectedAnimal(animal)}
-                  onRemove={removeAnimal}
-                  onMoveToCamp={handleMoveToCamp}
-                  searchTerm={searchTerm}
-                  statusFilter={statusFilter}
-                  campFilter={campFilter}
-                  onScheduleEventClick={handleScheduleEvent}
-                />
+                <AddTransactionForm onAdd={addTransaction} />
               </div>
-            )}
-            {activeTab === 'camps' && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Camp Management</h2>
-                <CampManagement
-                  camps={state.camps}
-                  onAddCamp={addCamp}
-                  onUpdateCamp={updateCamp}
-                  onDeleteCamp={deleteCamp}
-                />
+              
+              {filteredTransactions.length === 0 ? (
+                <div className="text-center py-12">
+                  <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No transactions found</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {searchTerm 
+                    ? 'Try adjusting your search'
+                    : 'Start tracking your farm finances'
+                  }
+                </p>
               </div>
-            )}
-            {activeTab === 'finances' && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Finances ({filteredTransactions.length})
-                  </h2>
-                  <AddTransactionForm onAdd={addTransaction} />
-                </div>
-                
-                {filteredTransactions.length === 0 ? (
-                  <div className="text-center py-12">
-                    <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No transactions found</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {searchTerm 
-                      ? 'Try adjusting your search'
-                      : 'Start tracking your farm finances'
-                    }
-                  </p>
-                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {filteredTransactions.map(transaction => (
@@ -292,78 +300,77 @@ function AppContent() {
             {activeTab === 'inventory' && (
               <InventoryList />
             )}
-        </main>
+      </main>
 
-        {/* Event Modal */}
-        {eventModalOpen && (
-          <ScheduleEventModal
-            open={eventModalOpen}
-            onClose={() => setEventModalOpen(false)}
-            onSubmit={handleSaveEvent}
-            selectedTagNumbers={eventModalTags}
-          />
-        )}
+      {/* Event Modal */}
+      {eventModalOpen && (
+        <ScheduleEventModal
+          open={eventModalOpen}
+          onClose={() => setEventModalOpen(false)}
+          onSubmit={handleSaveEvent}
+          selectedTagNumbers={eventModalTags}
+        />
+      )}
 
-        {isAddAnimalModalOpen && (
-          <AddAnimalForm 
-            onAdd={animal => { addAnimal(animal); setAddAnimalModalOpen(false); }}
-            onClose={() => setAddAnimalModalOpen(false)}
-            existingTags={state.animals.map(a => a.tagNumber)}
-            camps={state.camps.map(c => ({ id: c.id, name: c.name }))}
-          />
-        )}
+      {isAddAnimalModalOpen && (
+        <AddAnimalForm 
+          onAdd={animal => { addAnimal(animal); setAddAnimalModalOpen(false); }}
+          onClose={() => setAddAnimalModalOpen(false)}
+          existingTags={state.animals.map(a => a.tagNumber)}
+          camps={state.camps.map(c => ({ id: c.id, name: c.name }))}
+        />
+      )}
 
-        {/* Reminder Modal */}
-        {reminderModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-              <h2 className="text-xl font-bold mb-4">Set Reminder</h2>
-              <form onSubmit={e => {
-                e.preventDefault();
-                if (!reminderDesc || !reminderDate) return;
-                dispatch({
-                  type: 'ADD_TASK',
-                  payload: {
-                    id: Date.now().toString(),
-                    description: reminderDesc,
-                    dueDate: reminderDate,
-                    status: 'Pending',
-                    reminder: true,
-                    relatedAnimalIds: reminderAnimal ? [reminderAnimal] : undefined,
-                  }
-                });
-                setReminderModalOpen(false);
-                setReminderDesc('');
-                setReminderDate('');
-                setReminderAnimal('');
-              }}>
-                <div className="mb-2">
-                  <label className="block text-sm font-medium mb-1">Description</label>
-                  <input type="text" className="w-full border rounded px-3 py-2" value={reminderDesc} onChange={e => setReminderDesc(e.target.value)} required />
-                </div>
-                <div className="mb-2">
-                  <label className="block text-sm font-medium mb-1">Due Date</label>
-                  <input type="date" className="w-full border rounded px-3 py-2" value={reminderDate} onChange={e => setReminderDate(e.target.value)} required />
-                </div>
-                <div className="mb-2">
-                  <label className="block text-sm font-medium mb-1">Animal (optional)</label>
-                  <select className="w-full border rounded px-3 py-2" value={reminderAnimal} onChange={e => setReminderAnimal(e.target.value)}>
-                    <option value="">-- None --</option>
-                    {state.animals.map(a => (
-                      <option key={a.id} value={a.id}>{a.type} #{a.tagNumber}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex gap-2 justify-end mt-4">
-                  <button type="button" className="px-4 py-2 rounded bg-gray-200" onClick={() => setReminderModalOpen(false)}>Cancel</button>
-                  <button type="submit" className="px-4 py-2 rounded bg-yellow-500 text-white disabled:bg-gray-300" disabled={!reminderDesc || !reminderDate}>Save</button>
-                </div>
-              </form>
-            </div>
+      {/* Reminder Modal */}
+      {reminderModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h2 className="text-xl font-bold mb-4">Set Reminder</h2>
+            <form onSubmit={e => {
+              e.preventDefault();
+              if (!reminderDesc || !reminderDate) return;
+              dispatch({
+                type: 'ADD_TASK',
+                payload: {
+                  id: Date.now().toString(),
+                  description: reminderDesc,
+                  dueDate: reminderDate,
+                  status: 'Pending',
+                  reminder: true,
+                  relatedAnimalIds: reminderAnimal ? [reminderAnimal] : undefined,
+                }
+              });
+              setReminderModalOpen(false);
+              setReminderDesc('');
+              setReminderDate('');
+              setReminderAnimal('');
+            }}>
+              <div className="mb-2">
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <input type="text" className="w-full border rounded px-3 py-2" value={reminderDesc} onChange={e => setReminderDesc(e.target.value)} required />
+              </div>
+              <div className="mb-2">
+                <label className="block text-sm font-medium mb-1">Due Date</label>
+                <input type="date" className="w-full border rounded px-3 py-2" value={reminderDate} onChange={e => setReminderDate(e.target.value)} required />
+              </div>
+              <div className="mb-2">
+                <label className="block text-sm font-medium mb-1">Animal (optional)</label>
+                <select className="w-full border rounded px-3 py-2" value={reminderAnimal} onChange={e => setReminderAnimal(e.target.value)}>
+                  <option value="">-- None --</option>
+                  {state.animals.map(a => (
+                    <option key={a.id} value={a.id}>{a.type} #{a.tagNumber}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-2 justify-end mt-4">
+                <button type="button" className="px-4 py-2 rounded bg-gray-200" onClick={() => setReminderModalOpen(false)}>Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded bg-yellow-500 text-white disabled:bg-gray-300" disabled={!reminderDesc || !reminderDate}>Save</button>
+              </div>
+            </form>
           </div>
-        )}
-      </Layout>
-    </FarmProvider>
+        </div>
+      )}
+    </Layout>
   );
 }
 

@@ -3,6 +3,7 @@ import { Animal, HistoryEvent } from '../../types';
 import { calculateAge, formatDate, formatCurrency, generateId } from '../../utils/helpers';
 import { X, Calendar, DollarSign, AlertTriangle, Plus, MapPin } from 'lucide-react';
 import { useFarm } from '../../context/FarmContext';
+import { AnimalAIAssistant } from '../ai/AnimalAIAssistant';
 
 interface AnimalModalProps {
   animal: Animal;
@@ -141,7 +142,7 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
         </div>
 
         <div className="border-b border-gray-200 dark:border-zinc-700">
-          <nav className="flex">
+          <nav className="flex overflow-x-auto whitespace-nowrap w-full">
             {[
               { id: 'profile', label: 'Profile', icon: Calendar },
               ...(animal.status === 'Active' ? [
@@ -169,6 +170,7 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
         <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 8rem)' }}>
           {activeTab === 'profile' && (
             <div className="space-y-4">
+              <AnimalAIAssistant animal={animal} allAnimals={allAnimals} />
               {/* Animal photo */}
               {animal.photoUrl && (
                 <div className="flex flex-col items-center">

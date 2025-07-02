@@ -24,6 +24,7 @@ import { StatsCard } from './components/StatsCard';
 import { CampManagement } from './components/camps/CampManagement';
 import InventoryList from './components/inventory/InventoryList';
 import { AnimalModal } from './components/animals/AnimalModal';
+import { HFTestButton } from './components/ai/HFTestButton';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
 

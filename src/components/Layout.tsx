@@ -31,9 +31,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
 
   return (
     <div className="relative h-screen bg-gray-100 dark:bg-zinc-900">
-      {/* Desktop notification bell */}
-      <div className="hidden sm:flex absolute top-4 right-8 z-20 items-center">
-        <button onClick={() => setActiveTab('tasks')} className="relative p-2 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800">
+      {/* Desktop header with bell icon */}
+      <div className="hidden sm:flex items-center justify-between bg-white dark:bg-zinc-800 p-4 shadow-md">
+        <div className="flex items-center space-x-2">
+          <PawPrint className="h-7 w-7 text-emerald-500" />
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">FarmHand</span>
+        </div>
+        <button onClick={() => setActiveTab('tasks')} className="relative ml-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-700">
           <Bell className="h-6 w-6 text-yellow-500" />
           {dueReminders.length > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
@@ -54,14 +58,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         <div className="flex items-center space-x-2">
           <PawPrint className="h-7 w-7 text-emerald-500" />
           <span className="text-lg font-bold text-gray-900 dark:text-gray-100">FarmHand</span>
-          <button onClick={() => setActiveTab('tasks')} className="relative ml-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-700">
-            <Bell className="h-6 w-6 text-yellow-500" />
-            {dueReminders.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
-                {dueReminders.length}
-              </span>
-            )}
-          </button>
         </div>
       </div>
       {/* Sidebar drawer for mobile */}

@@ -1,5 +1,19 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { Animal, Transaction, Task, Stats, Event, Camp, FarmData, InventoryItem } from '../types';
+import { db } from '../firebase';
+import { useAuth } from './AuthContext';
+import {
+  collection,
+  doc,
+  setDoc,
+  getDocs,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where
+} from 'firebase/firestore';
 
 interface FarmState {
   animals: Animal[];
@@ -274,32 +288,63 @@ const FarmContext = createContext<{
 
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(farmReducer, initialState);
+  const { user } = useAuth();
 
+  // Firestore sync for animals and tasks
   useEffect(() => {
-    const savedData = localStorage.getItem('farmData');
-    if (savedData) {
-      try {
-        const farmData: FarmData & { events?: Event[], camps?: Camp[], inventory?: InventoryItem[] } = JSON.parse(savedData);
-        dispatch({ type: 'LOAD_DATA', payload: farmData });
-      } catch (error) {
-        console.error('Error loading farm data:', error);
-      }
-    }
-  }, []);
+    if (!user) return;
+    // Listen for animals
+    const animalsCol = collection(db, 'users', user.uid, 'animals');
+    const unsubAnimals = onSnapshot(animalsCol, snapshot => {
+      const animals: Animal[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Animal));
+      dispatch({ type: 'LOAD_DATA', payload: { ...state, animals } });
+    });
+    // Listen for tasks
+    const tasksCol = collection(db, 'users', user.uid, 'tasks');
+    const unsubTasks = onSnapshot(tasksCol, snapshot => {
+      const tasks: Task[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Task));
+      dispatch({ type: 'LOAD_DATA', payload: { ...state, tasks } });
+    });
+    return () => {
+      unsubAnimals();
+      unsubTasks();
+    };
+    // eslint-disable-next-line
+  }, [user]);
 
-  // Add this useEffect to save state to localStorage on the client after state changes
+  // Sync animal changes to Firestore
+  useEffect(() => {
+    if (!user) return;
+    const animalsCol = collection(db, 'users', user.uid, 'animals');
+    state.animals.forEach(async animal => {
+      if (animal.id) {
+        await setDoc(doc(animalsCol, animal.id), animal);
+      }
+    });
+  }, [state.animals, user]);
+
+  // Sync task changes to Firestore
+  useEffect(() => {
+    if (!user) return;
+    const tasksCol = collection(db, 'users', user.uid, 'tasks');
+    state.tasks.forEach(async task => {
+      if (task.id) {
+        await setDoc(doc(tasksCol, task.id), task);
+      }
+    });
+  }, [state.tasks, user]);
+
+  // Keep other data in localStorage as before
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('farmData', JSON.stringify({
-        animals: state.animals,
         transactions: state.transactions,
-        tasks: state.tasks,
         events: state.events,
         camps: state.camps,
         inventory: state.inventory,
       }));
     }
-  }, [state.animals, state.transactions, state.tasks, state.events, state.camps, state.inventory]);
+  }, [state.transactions, state.events, state.camps, state.inventory]);
 
   return (
     <FarmContext.Provider value={{ state, dispatch }}>

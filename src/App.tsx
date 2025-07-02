@@ -27,6 +27,7 @@ import { AnimalModal } from './components/animals/AnimalModal';
 import { HFTestButton } from './components/ai/HFTestButton';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthForm } from './components/Auth/AuthForm';
+import { FeedbackButton } from './components/FeedbackButton';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
 
@@ -40,9 +41,9 @@ function AppContent() {
     return <AuthForm />;
   }
 
-  // All farm state logic must be inside FarmProvider
   return (
     <FarmProvider>
+      <FeedbackButton />
       <FarmAppContent />
     </FarmProvider>
   );

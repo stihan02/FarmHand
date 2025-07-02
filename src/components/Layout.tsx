@@ -37,7 +37,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       <div className="hidden sm:flex items-center justify-between bg-white dark:bg-zinc-800 p-4 shadow-md">
         <div className="flex items-center space-x-2">
           <PawPrint className="h-7 w-7 text-emerald-500" />
-          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">FarmHand</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">HerdWise</span>
         </div>
         <div className="flex items-center gap-4">
           <button onClick={() => setActiveTab('tasks')} className="relative ml-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-700">
@@ -64,7 +64,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         </button>
         <div className="flex items-center space-x-2">
           <PawPrint className="h-7 w-7 text-emerald-500" />
-          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">FarmHand</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">HerdWise</span>
         </div>
       </div>
       {/* Sidebar drawer for mobile */}
@@ -90,7 +90,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           </button>
           <div className="flex items-center space-x-3 mb-10">
             <PawPrint className="h-8 w-8 text-emerald-500" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">FarmHand</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">HerdWise</h1>
           </div>
           <div className="space-y-3">
             {navItems.map(item => (
@@ -118,7 +118,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         <aside className="w-64 bg-white dark:bg-zinc-800 p-6 flex-shrink-0 flex-col shadow-lg h-full z-30">
         <div className="flex items-center space-x-3 mb-10">
           <PawPrint className="h-8 w-8 text-emerald-500" />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">FarmHand</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">HerdWise</h1>
         </div>
         <div className="space-y-3">
           {navItems.map(item => (

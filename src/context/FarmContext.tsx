@@ -318,7 +318,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const animalsCol = collection(db, 'users', user.uid, 'animals');
     state.animals.forEach(async animal => {
       if (animal.id) {
-        await setDoc(doc(animalsCol, animal.id), animal);
+        // Remove undefined fields
+        const sanitizedAnimal = Object.fromEntries(
+          Object.entries(animal).filter(([_, v]) => v !== undefined)
+        );
+        await setDoc(doc(animalsCol, animal.id), sanitizedAnimal);
       }
     });
   }, [state.animals, user]);

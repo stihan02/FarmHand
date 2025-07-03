@@ -46,16 +46,22 @@ Respond in clear, actionable bullet points where possible.`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: buildPrompt() })
       });
-      let data;
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        // If response is not JSON, show a friendly error
+      if (!res.ok) {
         const text = await res.text();
         throw new Error(text || 'Invalid server response');
       }
-      if (data.error) throw new Error(data.error);
-      setResponse(data.response || JSON.stringify(data));
+      const data = await res.json();
+      let aiResponse = '';
+      if (data.response) {
+        aiResponse = data.response;
+      } else if (Array.isArray(data) && data[0]?.generated_text) {
+        aiResponse = data[0].generated_text;
+      } else if (typeof data === 'string') {
+        aiResponse = data;
+      } else {
+        aiResponse = JSON.stringify(data);
+      }
+      setResponse(aiResponse);
     } catch (err: any) {
       setError(err.message || 'AI request failed');
     } finally {

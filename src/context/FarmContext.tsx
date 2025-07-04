@@ -290,7 +290,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [state, dispatch] = useReducer(farmReducer, initialState);
   const { user } = useAuth();
 
-  // Firestore sync for animals and tasks
+  // Firestore sync for animals, tasks, camps, events, inventory, transactions
   useEffect(() => {
     if (!user) return;
     // Listen for animals
@@ -305,9 +305,37 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const tasks: Task[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Task));
       dispatch({ type: 'LOAD_DATA', payload: { ...state, tasks } });
     });
+    // Listen for camps
+    const campsCol = collection(db, 'users', user.uid, 'camps');
+    const unsubCamps = onSnapshot(campsCol, snapshot => {
+      const camps: Camp[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Camp));
+      dispatch({ type: 'LOAD_DATA', payload: { ...state, camps } });
+    });
+    // Listen for events
+    const eventsCol = collection(db, 'users', user.uid, 'events');
+    const unsubEvents = onSnapshot(eventsCol, snapshot => {
+      const events: Event[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Event));
+      dispatch({ type: 'LOAD_DATA', payload: { ...state, events } });
+    });
+    // Listen for inventory
+    const inventoryCol = collection(db, 'users', user.uid, 'inventory');
+    const unsubInventory = onSnapshot(inventoryCol, snapshot => {
+      const inventory: InventoryItem[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as InventoryItem));
+      dispatch({ type: 'LOAD_DATA', payload: { ...state, inventory } });
+    });
+    // Listen for transactions
+    const transactionsCol = collection(db, 'users', user.uid, 'transactions');
+    const unsubTransactions = onSnapshot(transactionsCol, snapshot => {
+      const transactions: Transaction[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Transaction));
+      dispatch({ type: 'LOAD_DATA', payload: { ...state, transactions } });
+    });
     return () => {
       unsubAnimals();
       unsubTasks();
+      unsubCamps();
+      unsubEvents();
+      unsubInventory();
+      unsubTransactions();
     };
     // eslint-disable-next-line
   }, [user]);
@@ -337,6 +365,53 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
   }, [state.tasks, user]);
+
+  // Sync camp changes to Firestore
+  useEffect(() => {
+    if (!user) return;
+    const campsCol = collection(db, 'users', user.uid, 'camps');
+    state.camps.forEach(async camp => {
+      if (camp.id) {
+        const sanitizedCamp = Object.fromEntries(
+          Object.entries(camp).filter(([_, v]) => v !== undefined)
+        );
+        await setDoc(doc(campsCol, camp.id), sanitizedCamp);
+      }
+    });
+  }, [state.camps, user]);
+
+  // Sync event changes to Firestore
+  useEffect(() => {
+    if (!user) return;
+    const eventsCol = collection(db, 'users', user.uid, 'events');
+    state.events.forEach(async event => {
+      if (event.id) {
+        await setDoc(doc(eventsCol, event.id), event);
+      }
+    });
+  }, [state.events, user]);
+
+  // Sync inventory changes to Firestore
+  useEffect(() => {
+    if (!user) return;
+    const inventoryCol = collection(db, 'users', user.uid, 'inventory');
+    state.inventory.forEach(async item => {
+      if (item.id) {
+        await setDoc(doc(inventoryCol, item.id), item);
+      }
+    });
+  }, [state.inventory, user]);
+
+  // Sync transaction changes to Firestore
+  useEffect(() => {
+    if (!user) return;
+    const transactionsCol = collection(db, 'users', user.uid, 'transactions');
+    state.transactions.forEach(async transaction => {
+      if (transaction.id) {
+        await setDoc(doc(transactionsCol, transaction.id), transaction);
+      }
+    });
+  }, [state.transactions, user]);
 
   // Keep other data in localStorage as before
   useEffect(() => {

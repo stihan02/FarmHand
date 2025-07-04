@@ -246,67 +246,67 @@ function FarmAppContent() {
                   }
                 </p>
               </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredTransactions.map(transaction => (
-                    <TransactionCard
-                      key={transaction.id}
-                      transaction={transaction}
-                        onRemove={() => removeTransaction(transaction.id)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          {activeTab === 'tasks' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Tasks ({filteredTasks.length})
-                </h2>
-                <div className="flex gap-2">
-                  <button
-                    className="bg-yellow-500 text-white px-3 py-2 rounded shadow hover:bg-yellow-600"
-                    onClick={() => setReminderModalOpen(true)}
-                  >
-                    Set Reminder
-                  </button>
-                <AddTaskForm onAdd={addTask} />
-                </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredTransactions.map(transaction => (
+                  <TransactionCard
+                    key={transaction.id}
+                    transaction={transaction}
+                      onRemove={() => removeTransaction(transaction.id)}
+                  />
+                ))}
               </div>
-              
-              {filteredTasks.length === 0 ? (
-                <div className="text-center py-12">
-                  <CheckSquare className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No tasks found</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {searchTerm 
-                      ? 'Try adjusting your search'
-                      : 'Add tasks to keep track of farm activities'
-                    }
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredTasks.map(task => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                        onToggleStatus={() => {
-                          const updatedTask: Task = { ...task, status: task.status === 'Pending' ? 'Completed' : 'Pending' };
-                          updateTask(updatedTask);
-                        }}
-                        onRemove={() => removeTask(task.id)}
-                    />
-                  ))}
-                </div>
-              )}
+            )}
+          </div>
+        )}
+        {activeTab === 'tasks' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Tasks ({filteredTasks.length})
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  className="bg-yellow-500 text-white px-3 py-2 rounded shadow hover:bg-yellow-600"
+                  onClick={() => setReminderModalOpen(true)}
+                >
+                  Set Reminder
+                </button>
+              <AddTaskForm onAdd={addTask} />
+              </div>
             </div>
+            
+            {filteredTasks.length === 0 ? (
+              <div className="text-center py-12">
+                <CheckSquare className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No tasks found</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {searchTerm 
+                    ? 'Try adjusting your search'
+                    : 'Add tasks to keep track of farm activities'
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredTasks.map(task => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                      onToggleStatus={() => {
+                        const updatedTask: Task = { ...task, status: task.status === 'Pending' ? 'Completed' : 'Pending' };
+                        updateTask(updatedTask);
+                      }}
+                      onRemove={() => removeTask(task.id)}
+                  />
+                ))}
+              </div>
             )}
-            {activeTab === 'inventory' && (
-              <InventoryList />
-            )}
+          </div>
+          )}
+          {activeTab === 'inventory' && (
+            <InventoryList />
+          )}
       </main>
 
       {/* Event Modal */}
@@ -382,7 +382,7 @@ function FarmAppContent() {
 }
 
 // ErrorBoundary component
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -390,7 +390,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   static getDerivedStateFromError(error: any) {
     return { hasError: true, error };
   }
-  componentDidCatch(error: any, errorInfo: any) {
+  componentDidCatch(error: unknown, errorInfo: unknown) {
     // You can log errorInfo here if needed
   }
   render() {
@@ -405,7 +405,7 @@ function App() {
   return (
     <AuthProvider>
       <ErrorBoundary>
-        <AppContent />
+      <AppContent />
       </ErrorBoundary>
     </AuthProvider>
   );

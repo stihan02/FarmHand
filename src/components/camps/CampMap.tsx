@@ -38,13 +38,11 @@ interface CampMapProps {
 }
 
 const AddMarkerOnClick: React.FC<{ onAdd: (lat: number, lng: number) => void }> = ({ onAdd }) => {
-  console.log('AddMarkerOnClick mounted'); // Debug log
   useMapEvents({
     click(e) {
       onAdd(e.latlng.lat, e.latlng.lng);
     },
     mousedown(e) {
-      console.log('Map mousedown at:', e.latlng.lat, e.latlng.lng); // Debug log
     },
   });
   return null;
@@ -54,10 +52,8 @@ const AddMarkerOnClick: React.FC<{ onAdd: (lat: number, lng: number) => void }> 
 const ClickLogger = () => {
   useMapEvents({
     click(e) {
-      console.log('Map click at:', e.latlng);
     },
     mousedown(e) {
-      console.log('Map mousedown at:', e.latlng);
     }
   });
   return null;
@@ -203,34 +199,20 @@ export const CampMap: React.FC<CampMapProps & { onAnimalClick?: (animal: Animal)
             }}
           />
           {/* Render polygons for each camp */}
-          {props.camps.map((camp, idx) => {
-            if (
-              !camp.geoJson ||
-              !camp.geoJson.geometry ||
-              camp.geoJson.geometry.type !== 'Polygon' ||
-              !Array.isArray(camp.geoJson.geometry.coordinates) ||
-              !Array.isArray(camp.geoJson.geometry.coordinates[0])
-            ) {
-              return null;
-            }
-            const areaHa = calculatePolygonAreaHa(camp.geoJson.geometry.coordinates[0]);
-            const animalCount = getAnimalCount(camp.id);
-            const warning = getOvergrazingWarning(animalCount, areaHa);
-            // Get all live animals in this camp
-            const animalsInCamp = state.animals.filter(a => a.campId === camp.id && a.status === 'Active');
-            return (
-              <React.Fragment key={camp.id || idx}>
+          {props.camps.map(camp => (
+            camp.geoJson && camp.geoJson.geometry && camp.geoJson.geometry.type === 'Polygon' ? (
               <Polygon
+                key={camp.id}
                 positions={camp.geoJson.geometry.coordinates[0].map(([lng, lat]: [number, number]) => [lat, lng])}
               >
                 <Popup>
                   <strong>{camp.name}</strong>
                   <br />
-                  Area: {areaHa.toFixed(2)} ha
+                  Area: {calculatePolygonAreaHa(camp.geoJson.geometry.coordinates[0]).toFixed(2)} ha
                   <br />
-                  Animals: {animalCount}
+                  Animals: {getAnimalCount(camp.id)}
                   <br />
-                  {warning && <span style={{ color: 'red' }}>{warning}<br /></span>}
+                  {getOvergrazingWarning(getAnimalCount(camp.id), calculatePolygonAreaHa(camp.geoJson.geometry.coordinates[0])) && <span style={{ color: 'red' }}>{getOvergrazingWarning(getAnimalCount(camp.id), calculatePolygonAreaHa(camp.geoJson.geometry.coordinates[0]))}<br /></span>}
                   <button
                     style={{
                       marginTop: 4,
@@ -256,38 +238,36 @@ export const CampMap: React.FC<CampMapProps & { onAnimalClick?: (animal: Animal)
                     View Details
                   </button>
                   <br />
-                  <button onClick={() => props.onDeleteCamp(camp.id || idx)} style={{ color: 'red', marginTop: 4 }}>Delete</button>
+                  <button onClick={() => props.onDeleteCamp(camp.id || 0)} style={{ color: 'red', marginTop: 4 }}>Delete</button>
                 </Popup>
-                  {/* Render animal markers for this camp */}
-                  {animalsInCamp.map(animal => {
-                    // Use animal.position if available, else camp centroid
-                    const pos = animal.position || getCampCentroid(camp);
-                    return (
-                      <Marker
-                        key={animal.id}
-                        position={[pos.lat, pos.lng]}
-                        draggable={true}
-                        eventHandlers={{
-                          dragend: (e) => handleAnimalDragEnd(animal, camp.id, e),
-                          click: () => props.onAnimalClick && props.onAnimalClick(animal),
-                        }}
-                      >
-                        <Popup>
-                          <div>
-                            <strong>Tag:</strong> {animal.tagNumber}<br />
-                            <strong>Gender:</strong> {animal.sex}
-                          </div>
-                        </Popup>
-                        <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={false}>
-                          {animal.tagNumber} ({animal.sex})
-                        </Tooltip>
-                      </Marker>
-                    );
-                  })}
+                {/* Render animal markers for this camp */}
+                {state.animals.filter(a => a.campId === camp.id && a.status === 'Active').map((animal: Animal) => {
+                  // Use animal.position if available, else camp centroid
+                  const pos = animal.position || getCampCentroid(camp);
+                  return (
+                    <Marker
+                      key={animal.id}
+                      position={[pos.lat, pos.lng]}
+                      draggable={true}
+                      eventHandlers={{
+                        dragend: e => handleAnimalDragEnd(animal, camp.id, e),
+                        click: () => props.onAnimalClick && props.onAnimalClick(animal),
+                      }}
+                    >
+                      <Tooltip>{animal.tagNumber}</Tooltip>
+                      <Popup>
+                        <strong>{animal.tagNumber}</strong>
+                        <br />
+                        {animal.type} - {animal.breed}
+                        <br />
+                        Status: {animal.status}
+                      </Popup>
+                    </Marker>
+                  );
+                })}
               </Polygon>
-              </React.Fragment>
-            );
-          })}
+            ) : null
+          ))}
         </FeatureGroup>
       </MapContainer>
     </div>

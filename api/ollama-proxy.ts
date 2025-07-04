@@ -16,7 +16,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt })
     });
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { response: text };
+    }
     res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch from Hugging Face Space', details: error });

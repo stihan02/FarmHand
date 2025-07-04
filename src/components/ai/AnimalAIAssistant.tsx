@@ -46,9 +46,10 @@ Respond in clear, actionable bullet points where possible.`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: buildPrompt() })
       });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || 'Invalid server response');
+      if (!res.ok) throw new Error('Network response was not ok');
+      const text = await res.text();
+      if (text) {
+        throw new Error(text);
       }
       const data = await res.json();
       let aiResponse = '';
@@ -63,6 +64,7 @@ Respond in clear, actionable bullet points where possible.`;
       }
       setResponse(aiResponse);
     } catch (err: any) {
+      console.error('Error fetching from ollama-proxy:', err);
       setError(err.message || 'AI request failed');
     } finally {
       setLoading(false);

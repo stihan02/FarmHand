@@ -38,9 +38,9 @@ export const WeatherWidget = () => {
       try {
         const response = await axios.get<WeatherData>(`https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${latitude},${longitude}&days=3`);
         setWeather(response.data);
-      } catch (err) {
+      } catch (error) {
+        console.error('Error fetching weather data:', error);
         setError('Could not fetch weather data.');
-        console.error(err);
       } finally {
         setLoading(false);
       }

@@ -106,15 +106,15 @@ const AnimalSwipe: React.FC = () => {
               <div className="absolute right-4 top-1/2 -translate-y-1/2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity md:opacity-100">
                 <button
                   className="bg-green-100 hover:bg-green-200 text-green-700 rounded-full px-2 py-1 text-xs font-semibold shadow"
-                  onClick={e => { e.stopPropagation(); /* TODO: Move handler */ }}
+                  onClick={e => { e.stopPropagation(); }}
                 >Move</button>
                 <button
                   className="bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full px-2 py-1 text-xs font-semibold shadow"
-                  onClick={e => { e.stopPropagation(); /* TODO: Edit handler */ }}
+                  onClick={e => { e.stopPropagation(); }}
                 >Edit</button>
                 <button
                   className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-2 py-1 text-xs font-semibold shadow"
-                  onClick={e => { e.stopPropagation(); /* TODO: History handler */ }}
+                  onClick={e => { e.stopPropagation(); }}
                 >History</button>
               </div>
             </li>

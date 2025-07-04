@@ -41,9 +41,9 @@ export const NDVIChart = () => {
             setCurrentNdvi(chartData[chartData.length - 1].ndvi);
         }
         
-      } catch (err) {
+      } catch (error) {
+        console.error('Error fetching NDVI data:', error);
         setError('Could not fetch NDVI data. Please check your API key and Polygon ID.');
-        console.error(err);
       } finally {
         setLoading(false);
       }

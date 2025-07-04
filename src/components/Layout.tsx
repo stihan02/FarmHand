@@ -40,14 +40,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           <span className="text-lg font-bold text-gray-900 dark:text-gray-100">HerdWise</span>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={() => setActiveTab('tasks')} className="relative ml-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-700">
-            <Bell className="h-6 w-6 text-yellow-500" />
-            {dueReminders.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
-                {dueReminders.length}
-              </span>
-            )}
-          </button>
+        <button onClick={() => setActiveTab('tasks')} className="relative ml-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-700">
+          <Bell className="h-6 w-6 text-yellow-500" />
+          {dueReminders.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
+              {dueReminders.length}
+            </span>
+          )}
+        </button>
           {user && (
             <button onClick={signOut} className="ml-4 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition">Sign Out</button>
           )}

@@ -6,6 +6,7 @@ import { useFarm } from '../../context/FarmContext';
 import { useIsMobile } from '../../utils/helpers';
 import { AnimalModal } from '../animals/AnimalModal';
 import { Animal } from '../../types';
+import { v4 as uuidv4 } from 'uuid';
 
 interface CampMarker {
   lat: number;
@@ -29,7 +30,7 @@ export const CampManagement: React.FC<CampManagementProps> = ({ camps, onAddCamp
   // Add a new camp from the map (polygon)
   const handleAddCamp = (camp: any) => {
     const newCamp: Camp = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       name: camp.name,
       geoJson: camp.geoJson,
       animals: [],

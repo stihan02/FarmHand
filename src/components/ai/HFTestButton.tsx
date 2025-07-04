@@ -15,9 +15,11 @@ export const HFTestButton: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: 'Suggest animal health actions for a sheep with a cough.' })
       });
+      if (!response.ok) throw new Error('Network response was not ok');
       const data = await response.json();
       setResult(JSON.stringify(data, null, 2));
-    } catch (err) {
+    } catch (error) {
+      console.error('Error fetching from hf-proxy:', error);
       setError('Request failed.');
     } finally {
       setLoading(false);

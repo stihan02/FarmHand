@@ -207,7 +207,6 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
         ...state,
         camps: state.camps.map(c => c.id === action.payload.id ? action.payload : c)
       };
-      console.log('Camps after UPDATE_CAMP:', newState.camps);
       break;
     case 'DELETE_CAMP':
       const updatedCamps = state.camps.filter(c => c.id !== action.payload);
@@ -381,11 +380,15 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const animalsCol = collection(db, 'users', user.uid, 'animals');
     state.animals.forEach(async animal => {
       if (animal.id) {
-        // Remove undefined fields
-        const sanitizedAnimal = Object.fromEntries(
-          Object.entries(animal).filter(([_, v]) => v !== undefined)
-        );
-        await setDoc(doc(animalsCol, animal.id), sanitizedAnimal);
+        try {
+          // Remove undefined fields
+          const sanitizedAnimal = Object.fromEntries(
+            Object.entries(animal).filter(([_, v]) => v !== undefined)
+          );
+          await setDoc(doc(animalsCol, animal.id), sanitizedAnimal);
+        } catch (error) {
+          console.error('Error syncing animal to Firestore:', error);
+        }
       }
     });
   }, [state.animals, user]);
@@ -396,7 +399,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const tasksCol = collection(db, 'users', user.uid, 'tasks');
     state.tasks.forEach(async task => {
       if (task.id) {
-        await setDoc(doc(tasksCol, task.id), task);
+        try {
+          await setDoc(doc(tasksCol, task.id), task);
+        } catch (error) {
+          console.error('Error syncing task to Firestore:', error);
+        }
       }
     });
   }, [state.tasks, user]);
@@ -407,10 +414,14 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const campsCol = collection(db, 'users', user.uid, 'camps');
     state.camps.forEach(async camp => {
       if (camp.id) {
-        const sanitizedCamp = Object.fromEntries(
-          Object.entries(camp).filter(([_, v]) => v !== undefined)
-        );
-        await setDoc(doc(campsCol, camp.id), sanitizedCamp);
+        try {
+          const sanitizedCamp = Object.fromEntries(
+            Object.entries(camp).filter(([_, v]) => v !== undefined)
+          );
+          await setDoc(doc(campsCol, camp.id), sanitizedCamp);
+        } catch (error) {
+          console.error('Error syncing camp to Firestore:', error);
+        }
       }
     });
   }, [state.camps, user]);
@@ -421,7 +432,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const eventsCol = collection(db, 'users', user.uid, 'events');
     state.events.forEach(async event => {
       if (event.id) {
-        await setDoc(doc(eventsCol, event.id), event);
+        try {
+          await setDoc(doc(eventsCol, event.id), event);
+        } catch (error) {
+          console.error('Error syncing event to Firestore:', error);
+        }
       }
     });
   }, [state.events, user]);
@@ -432,7 +447,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const inventoryCol = collection(db, 'users', user.uid, 'inventory');
     state.inventory.forEach(async item => {
       if (item.id) {
-        await setDoc(doc(inventoryCol, item.id), item);
+        try {
+          await setDoc(doc(inventoryCol, item.id), item);
+        } catch (error) {
+          console.error('Error syncing inventory item to Firestore:', error);
+        }
       }
     });
   }, [state.inventory, user]);
@@ -443,7 +462,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const transactionsCol = collection(db, 'users', user.uid, 'transactions');
     state.transactions.forEach(async transaction => {
       if (transaction.id) {
-        await setDoc(doc(transactionsCol, transaction.id), transaction);
+        try {
+          await setDoc(doc(transactionsCol, transaction.id), transaction);
+        } catch (error) {
+          console.error('Error syncing transaction to Firestore:', error);
+        }
       }
     });
   }, [state.transactions, user]);

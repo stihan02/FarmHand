@@ -11,7 +11,7 @@ const UNIT_INFO = {
   SSU: 'Small Stock Unit (e.g., 1 sheep, 1 goat, 2 ostriches, 10 pigs)',
 };
 
-function normalizeRates(rates: any): { LSU: number; SSU: number } {
+function normalizeRates(rates: Partial<{ LSU: number; SSU: number }>): { LSU: number; SSU: number } {
   return {
     LSU: typeof rates?.LSU === 'number' ? rates.LSU : 0.1,
     SSU: typeof rates?.SSU === 'number' ? rates.SSU : 0.5,
@@ -37,11 +37,11 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
 
   // Stocking rates: LSU per ha, SSU per ha
   const [stockingRates, setStockingRates] = useState<{ LSU: number; SSU: number }>(
-    normalizeRates(camp.recommendedStockingRates)
+    normalizeRates(camp.recommendedStockingRates || {})
   );
 
   useEffect(() => {
-    setStockingRates(normalizeRates(camp.recommendedStockingRates));
+    setStockingRates(normalizeRates(camp.recommendedStockingRates || {}));
   }, [camp]);
 
   const handleRateChange = (key: 'LSU' | 'SSU', value: string) => {
@@ -51,7 +51,6 @@ export const CampSidebar: React.FC<{ camp: Camp; onClose: () => void; onUpdateCa
   const handleSaveRates = () => {
     if (onUpdateCamp) {
       const updatedCamp = { ...camp, recommendedStockingRates: normalizeRates(stockingRates) };
-      console.log('Saving camp with updated rates:', updatedCamp);
       onUpdateCamp(updatedCamp);
     }
   };

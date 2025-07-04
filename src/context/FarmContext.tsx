@@ -38,14 +38,19 @@ type FarmAction =
   | { type: 'ADD_EVENT'; payload: Event }
   | { type: 'UPDATE_EVENT'; payload: Event }
   | { type: 'REMOVE_EVENT'; payload: string }
-  | { type: 'LOAD_DATA'; payload: FarmData & { events?: Event[], camps?: Camp[], inventory?: InventoryItem[] } }
   | { type: 'ADD_CAMP'; payload: Camp }
   | { type: 'UPDATE_CAMP'; payload: Camp }
   | { type: 'DELETE_CAMP'; payload: string }
   | { type: 'ADD_INVENTORY_ITEM'; payload: InventoryItem }
   | { type: 'UPDATE_INVENTORY_ITEM'; payload: InventoryItem }
   | { type: 'REMOVE_INVENTORY_ITEM'; payload: string }
-  | { type: 'LOG_INVENTORY_USAGE'; payload: { id: string; change: number; reason: string } };
+  | { type: 'LOG_INVENTORY_USAGE'; payload: { id: string; change: number; reason: string } }
+  | { type: 'SET_ANIMALS'; payload: Animal[] }
+  | { type: 'SET_TASKS'; payload: Task[] }
+  | { type: 'SET_CAMPS'; payload: Camp[] }
+  | { type: 'SET_EVENTS'; payload: Event[] }
+  | { type: 'SET_INVENTORY'; payload: InventoryItem[] }
+  | { type: 'SET_TRANSACTIONS'; payload: Transaction[] };
 
 const calculateStats = (animals: Animal[], transactions: Transaction[], tasks: Task[]): Stats => {
   const active = animals.filter(a => a.status === 'Active').length;
@@ -255,13 +260,43 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
         ),
       };
       break;
-    case 'LOAD_DATA':
+    case 'SET_ANIMALS':
       newState = {
-        ...action.payload,
-        events: action.payload.events || [],
-        camps: action.payload.camps || [],
-        inventory: action.payload.inventory || [],
-        stats: calculateStats(action.payload.animals, action.payload.transactions, action.payload.tasks),
+        ...state,
+        animals: action.payload,
+        stats: calculateStats(action.payload, state.transactions, state.tasks),
+      };
+      break;
+    case 'SET_TASKS':
+      newState = {
+        ...state,
+        tasks: action.payload,
+        stats: calculateStats(state.animals, state.transactions, action.payload),
+      };
+      break;
+    case 'SET_CAMPS':
+      newState = {
+        ...state,
+        camps: action.payload,
+      };
+      break;
+    case 'SET_EVENTS':
+      newState = {
+        ...state,
+        events: action.payload,
+      };
+      break;
+    case 'SET_INVENTORY':
+      newState = {
+        ...state,
+        inventory: action.payload,
+      };
+      break;
+    case 'SET_TRANSACTIONS':
+      newState = {
+        ...state,
+        transactions: action.payload,
+        stats: calculateStats(state.animals, action.payload, state.tasks),
       };
       break;
     default:
@@ -297,37 +332,37 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const animalsCol = collection(db, 'users', user.uid, 'animals');
     const unsubAnimals = onSnapshot(animalsCol, snapshot => {
       const animals: Animal[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Animal));
-      dispatch({ type: 'LOAD_DATA', payload: { ...state, animals } });
+      dispatch({ type: 'SET_ANIMALS', payload: animals });
     });
     // Listen for tasks
     const tasksCol = collection(db, 'users', user.uid, 'tasks');
     const unsubTasks = onSnapshot(tasksCol, snapshot => {
       const tasks: Task[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Task));
-      dispatch({ type: 'LOAD_DATA', payload: { ...state, tasks } });
+      dispatch({ type: 'SET_TASKS', payload: tasks });
     });
     // Listen for camps
     const campsCol = collection(db, 'users', user.uid, 'camps');
     const unsubCamps = onSnapshot(campsCol, snapshot => {
       const camps: Camp[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Camp));
-      dispatch({ type: 'LOAD_DATA', payload: { ...state, camps } });
+      dispatch({ type: 'SET_CAMPS', payload: camps });
     });
     // Listen for events
     const eventsCol = collection(db, 'users', user.uid, 'events');
     const unsubEvents = onSnapshot(eventsCol, snapshot => {
       const events: Event[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Event));
-      dispatch({ type: 'LOAD_DATA', payload: { ...state, events } });
+      dispatch({ type: 'SET_EVENTS', payload: events });
     });
     // Listen for inventory
     const inventoryCol = collection(db, 'users', user.uid, 'inventory');
     const unsubInventory = onSnapshot(inventoryCol, snapshot => {
       const inventory: InventoryItem[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as InventoryItem));
-      dispatch({ type: 'LOAD_DATA', payload: { ...state, inventory } });
+      dispatch({ type: 'SET_INVENTORY', payload: inventory });
     });
     // Listen for transactions
     const transactionsCol = collection(db, 'users', user.uid, 'transactions');
     const unsubTransactions = onSnapshot(transactionsCol, snapshot => {
       const transactions: Transaction[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Transaction));
-      dispatch({ type: 'LOAD_DATA', payload: { ...state, transactions } });
+      dispatch({ type: 'SET_TRANSACTIONS', payload: transactions });
     });
     return () => {
       unsubAnimals();

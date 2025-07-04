@@ -342,7 +342,13 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for camps
     const campsCol = collection(db, 'users', user.uid, 'camps');
     const unsubCamps = onSnapshot(campsCol, snapshot => {
-      const camps: Camp[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Camp));
+      const camps: Camp[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        if (typeof data.geoJson === 'string') {
+          data.geoJson = JSON.parse(data.geoJson);
+        }
+        return { ...data, id: doc.id } as Camp;
+      });
       dispatch({ type: 'SET_CAMPS', payload: camps });
     });
     // Listen for events
@@ -418,6 +424,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const sanitizedCamp = Object.fromEntries(
             Object.entries(camp).filter(([_, v]) => v !== undefined)
           );
+          if (sanitizedCamp.geoJson) {
+            console.log('Type of geoJson before save:', typeof sanitizedCamp.geoJson, sanitizedCamp.geoJson);
+            sanitizedCamp.geoJson = JSON.stringify(sanitizedCamp.geoJson);
+          }
+          console.log('Saving camp to Firestore:', sanitizedCamp); // Debug log
           await setDoc(doc(campsCol, camp.id), sanitizedCamp);
         } catch (error) {
           console.error('Error syncing camp to Firestore:', error);

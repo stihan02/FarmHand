@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Home, PawPrint, DollarSign, CheckSquare, MapPin, Bell } from 'lucide-react';
-import AnimalSwipe from './animals/AnimalSwipe';
 import { useFarm } from '../context/FarmContext';
 import { useAuth } from '../context/AuthContext';
-import { useSwipeable } from 'react-swipeable';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
 
@@ -31,23 +29,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
   const dueReminders = state.tasks.filter(
     t => t.reminder && t.status !== 'Completed' && new Date(t.dueDate) <= now
   );
-
-  // Swipe handlers for mobile
-  const tabOrder = navItems.map(item => item.id);
-  const currentTabIdx = tabOrder.indexOf(activeTab);
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => {
-      if (currentTabIdx < tabOrder.length - 1) {
-        setActiveTab(tabOrder[currentTabIdx + 1]);
-      }
-    },
-    onSwipedRight: () => {
-      if (currentTabIdx > 0) {
-        setActiveTab(tabOrder[currentTabIdx - 1]);
-      }
-    },
-    trackMouse: true,
-  });
 
   return (
     <div className="relative h-screen bg-gray-100 dark:bg-zinc-900">
@@ -160,7 +141,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         </main>
       </div>
       {/* Main content for mobile (below sidebar) */}
-      <div className="sm:hidden" {...swipeHandlers}>
+      <div className="sm:hidden">
         {children}
       </div>
       {/* Bottom tab bar for mobile */}

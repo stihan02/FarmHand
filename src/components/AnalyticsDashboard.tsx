@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { collection, getDocs } from 'firebase/firestore';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 
 interface Animal {
   id: string;
@@ -16,18 +16,11 @@ interface MedicalRecord {
   type: string;
 }
 
-const STATUS_COLORS = {
-  Active: '#10b981', // emerald
-  Sold: '#f59e42',  // orange
-  Deceased: '#ef4444', // red
-};
-
 export const AnalyticsDashboard: React.FC = () => {
   const { user } = useAuth();
   const [animalData, setAnimalData] = useState<Animal[]>([]);
   const [medicalData, setMedicalData] = useState<MedicalRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAnalytics, setShowAnalytics] = useState(false);
 
   // Fetch animals and medical records
   useEffect(() => {
@@ -49,22 +42,31 @@ export const AnalyticsDashboard: React.FC = () => {
     fetchData();
   }, [user]);
 
-  // Animal status pie chart data
-  const animalStatusData = (() => {
-    const counts: { [status: string]: number } = {};
+  // Animal count over time (by month)
+  const animalCountByMonth = (() => {
+    const counts: { [month: string]: number } = {};
     animalData.forEach(animal => {
-      counts[animal.status] = (counts[animal.status] || 0) + 1;
+      const month = animal.birthdate?.slice(0, 7); // YYYY-MM
+      if (month) counts[month] = (counts[month] || 0) + 1;
     });
-    return Object.keys(counts).map(status => ({ name: status, value: counts[status] }));
+    // Cumulative count
+    const months = Object.keys(counts).sort();
+    let total = 0;
+    return months.map(month => {
+      total += counts[month];
+      return { month, count: total };
+    });
   })();
 
-  // Health event type pie chart data
-  const healthTypeData = (() => {
-    const counts: { [type: string]: number } = {};
+  // Health events per month
+  const healthEventsByMonth = (() => {
+    const counts: { [month: string]: number } = {};
     medicalData.forEach(rec => {
-      counts[rec.type] = (counts[rec.type] || 0) + 1;
+      const month = rec.date?.slice(0, 7); // YYYY-MM
+      if (month) counts[month] = (counts[month] || 0) + 1;
     });
-    return Object.keys(counts).map(type => ({ name: type, value: counts[type] }));
+    const months = Object.keys(counts).sort();
+    return months.map(month => ({ month, events: counts[month] }));
   })();
 
   if (loading) return <div className="p-8 text-center">Loading analytics...</div>;
@@ -72,65 +74,31 @@ export const AnalyticsDashboard: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-8">
       <h2 className="text-2xl font-bold mb-4">Analytics & Reports</h2>
-      {!showAnalytics && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <button
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg text-lg transition-all duration-200"
-            onClick={() => setShowAnalytics(true)}
-          >
-            Generate Analytics
-          </button>
-          <p className="text-gray-500 mt-4 text-center">Click to generate and view your farm's analytics as beautiful pie charts.</p>
-        </div>
-      )}
-      {showAnalytics && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
-            <h3 className="font-semibold mb-2 text-emerald-700">Animal Status Distribution</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={animalStatusData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  label
-                >
-                  {animalStatusData.map((entry, idx) => (
-                    <Cell key={`cell-${idx}`} fill={STATUS_COLORS[entry.name as keyof typeof STATUS_COLORS] || '#8884d8'} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
-            <h3 className="font-semibold mb-2 text-emerald-700">Health Event Types</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={healthTypeData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  label
-                >
-                  {healthTypeData.map((entry, idx) => (
-                    <Cell key={`cell-health-${idx}`} fill={['#10b981', '#f59e42', '#ef4444', '#6366f1', '#a3e635'][idx % 5]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="font-semibold mb-2">Animal Count Over Time</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={animalCountByMonth} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={3} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="font-semibold mb-2">Health Events Per Month</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={healthEventsByMonth} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="events" fill="#f59e42" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }; 

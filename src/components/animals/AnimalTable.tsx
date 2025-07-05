@@ -750,7 +750,13 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                 <tr
                   key={row.id}
                   className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer ${multiSelectMode && selectedIds.includes(row.original.id) ? 'bg-emerald-100 dark:bg-emerald-900' : ''}`}
-                  onClick={() => { console.log('Row clicked:', row.original); setSelectedAnimal(row.original); }}
+                  onClick={() => {
+                    if (multiSelectMode) {
+                      setSelectedIds(prev => prev.includes(row.original.id) ? prev.filter(x => x !== row.original.id) : [...prev, row.original.id]);
+                    } else {
+                      setSelectedAnimal(row.original);
+                    }
+                  }}
                   onTouchStart={isMobile ? () => handleRowTouchStart(row.original.id) : undefined}
                   onTouchEnd={isMobile ? handleRowTouchEnd : undefined}
                 >

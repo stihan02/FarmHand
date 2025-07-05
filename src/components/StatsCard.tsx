@@ -11,16 +11,6 @@ export const StatsCard = () => {
   return (
     <div className="space-y-6">
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <div
-        className="bg-white dark:bg-zinc-800 p-4 sm:p-6 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 hover:shadow-xl transition-shadow cursor-pointer min-w-0"
-      >
-        <div className="flex items-center space-x-3 mb-2 sm:mb-4">
-          <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-            <Bot className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-          </div>
-        </div>
-      </div>
-
       <div className="bg-white dark:bg-zinc-800 p-4 sm:p-6 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 min-w-0">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-lg">

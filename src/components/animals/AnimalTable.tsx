@@ -613,9 +613,10 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
   return (
     <>
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+      {/* Bulk action bar: fixed at bottom on mobile, top on desktop */}
       {selectedRowCount > 0 && (
-        <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="sm:static sm:top-auto sm:left-auto sm:right-auto sm:w-auto fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between p-4 shadow-lg">
+          <div className="flex items-center space-x-4 mb-2 sm:mb-0">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {selectedRowCount} item(s) selected
             </p>
@@ -631,7 +632,6 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                   <ChevronDown className="-mr-1 ml-2 h-5 w-5" />
                 </button>
               </div>
-
               {moveToCampDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setMoveToCampDropdownOpen(false)}></div>
@@ -676,17 +676,16 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
               )}
             </div>
           </div>
-          
           <div className="flex items-center space-x-2">
-             <button
-                onClick={() => {
-                  const selected = table.getSelectedRowModel().flatRows.map(row => row.original.tagNumber);
-                  onScheduleEventClick && onScheduleEventClick(selected);
-                }}
-                className="px-3 py-1.5 text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-200 dark:hover:bg-purple-900"
-              >
-                Schedule Event
-              </button>
+            <button
+              onClick={() => {
+                const selected = table.getSelectedRowModel().flatRows.map(row => row.original.tagNumber);
+                onScheduleEventClick && onScheduleEventClick(selected);
+              }}
+              className="px-3 py-1.5 text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-200 dark:hover:bg-purple-900"
+            >
+              Schedule Event
+            </button>
             <button
               onClick={() => handleBulkAction('sell')}
               className="px-3 py-1.5 text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-200 dark:hover:bg-blue-900"

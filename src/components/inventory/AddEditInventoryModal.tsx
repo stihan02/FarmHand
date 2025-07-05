@@ -77,7 +77,7 @@ const AddEditInventoryModal: React.FC<AddEditInventoryModalProps> = ({ open, onC
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">{isEdit ? 'Edit' : 'Add'} Inventory Item</h2>
         {error && <div className="bg-red-100 text-red-700 px-3 py-2 rounded mb-2 text-sm">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-3">

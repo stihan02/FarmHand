@@ -35,6 +35,7 @@ import { useFarm } from '../../context/FarmContext';
 import { differenceInDays, parseISO } from 'date-fns';
 import { AnimalModal } from './AnimalModal';
 import * as XLSX from 'xlsx';
+import { isMobile } from 'react-device-detect';
 
 interface AnimalTableProps {
   animals: Animal[];
@@ -150,6 +151,8 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
   const [importErrors, setImportErrors] = useState<ImportError[]>([]);
   const [importPreview, setImportPreview] = useState<ImportAnimalRow[]>([]);
   const [importFileName, setImportFileName] = useState('');
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const typeEmojis: Record<string, string> = {
     Sheep: '🐑',
@@ -580,6 +583,29 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     setImportFileName('');
   }
 
+  // Long-press logic for mobile
+  let longPressTimer: NodeJS.Timeout;
+  const handleRowTouchStart = (id: string) => {
+    if (!multiSelectMode) {
+      longPressTimer = setTimeout(() => {
+        setMultiSelectMode(true);
+        setSelectedIds([id]);
+      }, 400); // 400ms for long-press
+    }
+  };
+  const handleRowTouchEnd = () => {
+    clearTimeout(longPressTimer);
+  };
+  const handleRowClick = (id: string) => {
+    if (multiSelectMode) {
+      setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    }
+  };
+  // Exit multi-select mode if none selected
+  useEffect(() => {
+    if (multiSelectMode && selectedIds.length === 0) setMultiSelectMode(false);
+  }, [selectedIds, multiSelectMode]);
+
   if (selectedAnimal) {
     console.log('Rendering AnimalModal for:', selectedAnimal);
   }
@@ -723,8 +749,10 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
               {table.getRowModel().rows.map(row => (
                 <tr
                   key={row.id}
-                className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer`}
-                    onClick={() => { console.log('Row clicked:', row.original); setSelectedAnimal(row.original); }}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${row.getIsSelected() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''} cursor-pointer ${multiSelectMode && selectedIds.includes(row.original.id) ? 'bg-emerald-100 dark:bg-emerald-900' : ''}`}
+                  onClick={() => { console.log('Row clicked:', row.original); setSelectedAnimal(row.original); }}
+                  onTouchStart={isMobile ? () => handleRowTouchStart(row.original.id) : undefined}
+                  onTouchEnd={isMobile ? handleRowTouchEnd : undefined}
                 >
                   {row.getVisibleCells().map(cell => (
                   <td 
@@ -743,6 +771,16 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
+                  {multiSelectMode && (
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(row.original.id)}
+                        readOnly
+                        className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 dark:bg-gray-800 dark:border-gray-600"
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

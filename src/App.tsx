@@ -28,6 +28,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthForm } from './components/Auth/AuthForm';
 import { FeedbackButton } from './components/FeedbackButton';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { Analytics } from '@vercel/analytics/react';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
 
@@ -381,7 +382,7 @@ function FarmAppContent() {
 }
 
 // ErrorBoundary component
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: unknown }> {
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -389,7 +390,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   static getDerivedStateFromError(error: any) {
     return { hasError: true, error };
   }
-  componentDidCatch(error: unknown, errorInfo: unknown) {
+  componentDidCatch(error: any, errorInfo: any) {
     // You can log errorInfo here if needed
   }
   render() {
@@ -404,7 +405,8 @@ function App() {
   return (
     <AuthProvider>
       <ErrorBoundary>
-      <AppContent />
+        <AppContent />
+        <Analytics />
       </ErrorBoundary>
     </AuthProvider>
   );

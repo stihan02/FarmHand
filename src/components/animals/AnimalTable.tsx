@@ -613,9 +613,9 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
   return (
     <>
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-      {/* Bulk action bar: fixed at bottom on mobile, top on desktop */}
+      {/* Bulk action bar: floating above tab bar on mobile, top on desktop */}
       {selectedRowCount > 0 && (
-        <div className="sm:static sm:top-auto sm:left-auto sm:right-auto sm:w-auto fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between p-4 shadow-lg">
+        <div className="sm:static sm:top-auto sm:left-auto sm:right-auto sm:w-auto fixed bottom-20 left-4 right-4 z-[100] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between p-4 shadow-2xl rounded-2xl transition-all animate-fade-in">
           <div className="flex items-center space-x-4 mb-2 sm:mb-0">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {selectedRowCount} item(s) selected
@@ -703,6 +703,14 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
               className="px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
             >
               Remove
+            </button>
+            {/* Close button for mobile */}
+            <button
+              onClick={() => { setSelectedIds([]); setRowSelection({}); }}
+              className="ml-2 p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none"
+              aria-label="Close bulk action bar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
         </div>

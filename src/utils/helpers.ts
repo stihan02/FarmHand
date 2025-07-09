@@ -79,11 +79,10 @@ export const exportAnimalsReport = (animals: Animal[]) => {
     'Breed': animal.breed || 'Unknown',
     'Status': animal.status,
     'Camp': animal.campId || 'Unassigned',
-    'Purchase Date': animal.purchaseDate || 'Unknown',
-    'Purchase Price': animal.purchasePrice || 0,
+    'Birthdate': animal.birthdate,
     'Sale Date': animal.saleDate || '',
     'Sale Price': animal.salePrice || 0,
-    'Notes': animal.notes || ''
+    'Sex': animal.sex
   }));
   
   exportToCSV(reportData, 'animals_report');
@@ -105,11 +104,11 @@ export const exportInventoryReport = (inventory: InventoryItem[]) => {
   const reportData = inventory.map(item => ({
     'Item Name': item.name,
     'Category': item.category,
-    'Current Stock': item.currentStock,
+    'Current Stock': item.quantity,
     'Unit': item.unit,
-    'Cost Per Unit': item.costPerUnit,
-    'Total Value': item.currentStock * item.costPerUnit,
-    'Last Updated': item.lastUpdated
+    'Price Per Unit': item.price || 0,
+    'Total Value': item.quantity * (item.price || 0),
+    'Last Used': item.lastUsed || 'Never'
   }));
   
   exportToCSV(reportData, 'inventory_report');

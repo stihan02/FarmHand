@@ -30,8 +30,9 @@ import { FeedbackButton } from './components/FeedbackButton';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { Analytics } from '@vercel/analytics/react';
 import { LandingPage } from './components/LandingPage';
+import { ReportsExport } from './components/ReportsExport';
 
-type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
+type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory' | 'reports';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -307,6 +308,9 @@ function FarmAppContent() {
           )}
           {activeTab === 'inventory' && (
             <InventoryList />
+          )}
+          {activeTab === 'reports' && (
+            <ReportsExport />
           )}
       </main>
 

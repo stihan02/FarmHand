@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Animal, Transaction, Task, Camp, InventoryItem, Event } from '../types';
 
 export const calculateAge = (birthdate: string): string => {
   try {
@@ -22,7 +23,10 @@ export const calculateAge = (birthdate: string): string => {
 };
 
 export const formatCurrency = (amount: number): string => {
-  return `R${amount.toFixed(2)}`;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
 };
 
 export const formatDate = (date: string): string => {
@@ -43,27 +47,111 @@ export const generateId = (): string => {
 
 export const exportToCSV = (data: any[], filename: string) => {
   if (data.length === 0) return;
-
+  
   const headers = Object.keys(data[0]);
   const csvContent = [
     headers.join(','),
     ...data.map(row => 
       headers.map(header => {
         const value = row[header];
-        return typeof value === 'string' && value.includes(',') 
-          ? `"${value}"` 
-          : value;
+        // Handle values that need quotes
+        if (typeof value === 'string' && value.includes(',')) {
+          return `"${value}"`;
+        }
+        return value;
       }).join(',')
     )
   ].join('\n');
 
   const blob = new Blob([csvContent], { type: 'text/csv' });
   const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
   window.URL.revokeObjectURL(url);
+};
+
+export const exportAnimalsReport = (animals: Animal[]) => {
+  const reportData = animals.map(animal => ({
+    'Tag Number': animal.tagNumber,
+    'Type': animal.type,
+    'Breed': animal.breed || 'Unknown',
+    'Status': animal.status,
+    'Camp': animal.campId || 'Unassigned',
+    'Purchase Date': animal.purchaseDate || 'Unknown',
+    'Purchase Price': animal.purchasePrice || 0,
+    'Sale Date': animal.saleDate || '',
+    'Sale Price': animal.salePrice || 0,
+    'Notes': animal.notes || ''
+  }));
+  
+  exportToCSV(reportData, 'animals_report');
+};
+
+export const exportFinancialReport = (transactions: Transaction[]) => {
+  const reportData = transactions.map(transaction => ({
+    'Date': transaction.date,
+    'Type': transaction.type,
+    'Description': transaction.description,
+    'Amount': transaction.amount,
+    'Location': transaction.location || ''
+  }));
+  
+  exportToCSV(reportData, 'financial_report');
+};
+
+export const exportInventoryReport = (inventory: InventoryItem[]) => {
+  const reportData = inventory.map(item => ({
+    'Item Name': item.name,
+    'Category': item.category,
+    'Current Stock': item.currentStock,
+    'Unit': item.unit,
+    'Cost Per Unit': item.costPerUnit,
+    'Total Value': item.currentStock * item.costPerUnit,
+    'Last Updated': item.lastUpdated
+  }));
+  
+  exportToCSV(reportData, 'inventory_report');
+};
+
+export const exportAllData = (farmData: {
+  animals: Animal[];
+  transactions: Transaction[];
+  tasks: Task[];
+  camps: Camp[];
+  inventory: InventoryItem[];
+  events: Event[];
+}) => {
+  const backup = {
+    ...farmData,
+    exportDate: new Date().toISOString(),
+    version: '1.0'
+  };
+  
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `herdwise_backup_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
+
+export const importData = (file: File): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string);
+        resolve(data);
+      } catch (error) {
+        reject(new Error('Invalid backup file format'));
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsText(file);
+  });
 };
 
 export const isOverdue = (dueDate: string): boolean => {

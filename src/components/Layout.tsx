@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Home, PawPrint, DollarSign, CheckSquare, MapPin, Bell } from 'lucide-react';
+import { Home, PawPrint, DollarSign, CheckSquare, MapPin, Bell, FileText } from 'lucide-react';
 import { useFarm } from '../context/FarmContext';
 import { useAuth } from '../context/AuthContext';
 
-type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
+type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory' | 'reports';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -22,6 +22,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     { id: 'tasks' as ActiveTab, label: 'Tasks', icon: CheckSquare },
     { id: 'camps' as ActiveTab, label: 'Camps', icon: MapPin },
     { id: 'inventory' as ActiveTab, label: 'Inventory', icon: CheckSquare },
+    { id: 'reports' as ActiveTab, label: 'Reports', icon: FileText },
   ];
 
   // Count due/overdue reminders

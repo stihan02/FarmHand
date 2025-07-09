@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
-export const AuthForm: React.FC = () => {
+interface AuthFormProps {
+  initialMode?: 'signin' | 'signup';
+}
+
+export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = 'signup' }) => {
   const { signIn, signUp, signInWithGoogle, sendPasswordReset, loading, user } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(initialMode === 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);

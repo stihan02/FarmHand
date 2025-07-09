@@ -29,6 +29,7 @@ import { AuthForm } from './components/Auth/AuthForm';
 import { FeedbackButton } from './components/FeedbackButton';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { Analytics } from '@vercel/analytics/react';
+import { LandingPage } from './components/LandingPage';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory';
 
@@ -39,7 +40,7 @@ function AppContent() {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
   if (!user) {
-    return <AuthForm />;
+    return <LandingPage />;
   }
 
   return (

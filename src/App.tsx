@@ -190,12 +190,12 @@ function FarmAppContent() {
       activeTab={activeTab}
       setActiveTab={setActiveTab}
     >
-      <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full">
+      <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full pb-20 sm:pb-6">
         {activeTab === 'dashboard' && (
             <StatsCard />
         )}
         {activeTab === 'animals' && (
-          <div className="space-y-6">
+          <div className="space-y-6 pb-20 sm:pb-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   Animals ({filteredAnimals.length})
@@ -230,7 +230,7 @@ function FarmAppContent() {
             </div>
           )}
           {activeTab === 'camps' && (
-            <div className="space-y-6">
+            <div className="space-y-6 pb-20 sm:pb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Camp Management</h2>
               <CampManagement
                 camps={state.camps}
@@ -241,7 +241,7 @@ function FarmAppContent() {
             </div>
           )}
           {activeTab === 'finances' && (
-            <div className="space-y-6">
+            <div className="space-y-6 pb-20 sm:pb-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   Finances ({filteredTransactions.length})
@@ -274,7 +274,7 @@ function FarmAppContent() {
           </div>
         )}
         {activeTab === 'tasks' && (
-          <div className="space-y-6">
+          <div className="space-y-6 pb-20 sm:pb-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Tasks ({filteredTasks.length})

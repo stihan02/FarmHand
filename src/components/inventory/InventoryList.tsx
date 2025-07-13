@@ -75,22 +75,56 @@ const InventoryList: React.FC = () => {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 pb-20 sm:pb-4">
       <h2 className="text-2xl font-bold mb-4">Inventory</h2>
-      <div className="w-full overflow-x-auto">
+      
+      {/* Mobile card view */}
+      <div className="sm:hidden space-y-4">
+        {inventory.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">No inventory items yet.</div>
+        ) : (
+          inventory.map(item => (
+            <div 
+              key={item.id} 
+              className={`bg-white rounded-lg shadow p-4 border-l-4 ${isLowStock(item) ? 'border-red-500 bg-red-50' : 'border-green-500'}`}
+              onClick={() => { setSelectedItem(item); setEditModalOpen(true); }}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-semibold text-lg">{item.name}</h3>
+                <span className={`px-2 py-1 rounded text-xs font-medium ${isLowStock(item) ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                  {isLowStock(item) ? 'Low' : 'OK'}
+                </span>
+              </div>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p><span className="font-medium">Quantity:</span> {item.quantity} {item.unit}</p>
+                <p><span className="font-medium">Category:</span> {categoryLabels[item.category]}</p>
+                {item.price && (
+                  <p><span className="font-medium">Price:</span> {item.price.toLocaleString(undefined, { style: 'currency', currency: 'ZAR' })} per {item.unit}</p>
+                )}
+                {item.expiryDate && (
+                  <p><span className="font-medium">Expires:</span> {new Date(item.expiryDate).toLocaleDateString()}</p>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden sm:block w-full overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow">
           <thead>
             <tr className="bg-gray-100">
               <th className="py-2 px-4 text-left">Name</th>
-              <th className="py-2 px-4 text-left hidden sm:table-cell">Category</th>
+              <th className="py-2 px-4 text-left">Category</th>
               <th className="py-2 px-4 text-left">Quantity</th>
-              <th className="py-2 px-4 text-left hidden sm:table-cell">Unit</th>
-              <th className="py-2 px-4 text-left hidden sm:table-cell">Expiry</th>
-              <th className="py-2 px-4 text-left hidden sm:table-cell">Supplier</th>
-              <th className="py-2 px-4 text-left hidden sm:table-cell">Price per unit</th>
-              <th className="py-2 px-4 text-left hidden sm:table-cell">Total value</th>
+              <th className="py-2 px-4 text-left">Unit</th>
+              <th className="py-2 px-4 text-left">Expiry</th>
+              <th className="py-2 px-4 text-left">Supplier</th>
+              <th className="py-2 px-4 text-left">Price per unit</th>
+              <th className="py-2 px-4 text-left">Total value</th>
               <th className="py-2 px-4 text-left">Status</th>
-              <th className="py-2 px-4 text-left hidden sm:table-cell">Actions</th>
+              <th className="py-2 px-4 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -102,13 +136,13 @@ const InventoryList: React.FC = () => {
             {inventory.map(item => (
               <tr key={item.id} className={isLowStock(item) ? 'bg-red-50' : ''} onClick={() => { setSelectedItem(item); setEditModalOpen(true); }} style={{ cursor: 'pointer' }}>
                 <td className="py-2 px-4 font-medium">{item.name}</td>
-                <td className="py-2 px-4 hidden sm:table-cell">{categoryLabels[item.category]}</td>
+                <td className="py-2 px-4">{categoryLabels[item.category]}</td>
                 <td className="py-2 px-4">{item.quantity}</td>
-                <td className="py-2 px-4 hidden sm:table-cell">{item.unit}</td>
-                <td className="py-2 px-4 hidden sm:table-cell">{item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '-'}</td>
-                <td className="py-2 px-4 hidden sm:table-cell">{item.supplier || '-'}</td>
-                <td className="py-2 px-4 hidden sm:table-cell">{item.price ? item.price.toLocaleString(undefined, { style: 'currency', currency: 'ZAR' }) : '-'}</td>
-                <td className="py-2 px-4 hidden sm:table-cell">{item.price && item.quantity ? (item.price * item.quantity).toLocaleString(undefined, { style: 'currency', currency: 'ZAR' }) : '-'}</td>
+                <td className="py-2 px-4">{item.unit}</td>
+                <td className="py-2 px-4">{item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '-'}</td>
+                <td className="py-2 px-4">{item.supplier || '-'}</td>
+                <td className="py-2 px-4">{item.price ? item.price.toLocaleString(undefined, { style: 'currency', currency: 'ZAR' }) : '-'}</td>
+                <td className="py-2 px-4">{item.price && item.quantity ? (item.price * item.quantity).toLocaleString(undefined, { style: 'currency', currency: 'ZAR' }) : '-'}</td>
                 <td className="py-2 px-4">
                   {isLowStock(item) ? (
                     <span className="text-red-600 font-semibold">Low</span>
@@ -116,7 +150,7 @@ const InventoryList: React.FC = () => {
                     <span className="text-green-600">OK</span>
                   )}
                 </td>
-                <td className="py-2 px-4 space-x-2 hidden sm:table-cell">
+                <td className="py-2 px-4 space-x-2">
                   <button className="text-blue-600 hover:underline" onClick={e => { e.stopPropagation(); setSelectedItem(item); setEditModalOpen(true); }}>Edit</button>
                   <button className="text-red-600 hover:underline" onClick={e => { e.stopPropagation(); dispatch({ type: 'REMOVE_INVENTORY_ITEM', payload: item.id }); }}>Remove</button>
                   <button className="text-yellow-600 hover:underline" onClick={e => { e.stopPropagation(); setSelectedItem(item); setUsageModalOpen(true); }}>Log Usage</button>

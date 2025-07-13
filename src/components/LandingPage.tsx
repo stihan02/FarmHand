@@ -27,33 +27,7 @@ const features = [
 
 // Pricing removed for now - will add paywall later
 
-// Testimonials for social proof
-const testimonials = [
-  {
-    name: 'Sarah Johnson',
-    role: 'Dairy Farmer',
-    location: 'Wisconsin',
-    content: 'HerdWise has saved me 15+ hours every week. The animal tracking is incredible and the mobile app works perfectly in the field.',
-    rating: 5,
-    avatar: '🐄'
-  },
-  {
-    name: 'Mike Chen',
-    role: 'Cattle Rancher',
-    location: 'Texas',
-    content: 'Finally, a farm management app that actually works. The camp management feature has revolutionized how I handle grazing.',
-    rating: 5,
-    avatar: '🐂'
-  },
-  {
-    name: 'Emma Rodriguez',
-    role: 'Sheep Farmer',
-    location: 'Colorado',
-    content: 'Simple, intuitive, and powerful. Exactly what I needed for my farm. The analytics help me make better decisions.',
-    rating: 5,
-    avatar: '🐑'
-  }
-];
+// Testimonials removed - will add real ones when we have actual users
 
 // Screenshot data with fallback icons
 const screenshots = [
@@ -266,33 +240,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-800/50">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center text-slate-900 dark:text-white mb-16">
-            What farmers are saying
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-sm border border-slate-200 dark:border-slate-700">
-                <div className="flex items-center mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-slate-600 dark:text-slate-300 mb-6 italic leading-relaxed">"{testimonial.content}"</p>
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{testimonial.avatar}</span>
-                  <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{testimonial.name}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{testimonial.role} • {testimonial.location}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
 
 

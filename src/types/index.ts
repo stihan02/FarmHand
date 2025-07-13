@@ -1,3 +1,9 @@
+export interface WeightRecord {
+  date: string;
+  weight: number;
+  notes?: string;
+}
+
 export interface Animal {
   id: string;
   type: string;
@@ -18,6 +24,7 @@ export interface Animal {
   offspringTags: string[];
   genetics: GeneticInfo;
   health: HealthRecord[];
+  weightRecords: WeightRecord[];
   history: HistoryEvent[];
   photoUrl?: string;
 }

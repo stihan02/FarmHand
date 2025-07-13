@@ -15,9 +15,10 @@ import {
   CheckSquare, 
   Filter,
   Search,
-  Bot
+  Bot,
+  Scale
 } from 'lucide-react';
-import { Animal, Transaction, Task, Event, Camp } from './types';
+import { Animal, Transaction, Task, Event, Camp, WeightRecord } from './types';
 import { ScheduleEventModal } from './components/animals/ScheduleEventModal';
 import { v4 as uuidv4 } from 'uuid';
 import { StatsCard } from './components/StatsCard';
@@ -27,10 +28,10 @@ import { AnimalModal } from './components/animals/AnimalModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthForm } from './components/Auth/AuthForm';
 import { FeedbackButton } from './components/FeedbackButton';
-import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { Analytics } from '@vercel/analytics/react';
 import { LandingPage } from './components/LandingPage';
 import { ReportsExport } from './components/ReportsExport';
+import { QuickWeightEntry } from './components/animals/QuickWeightEntry';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory' | 'reports';
 
@@ -67,6 +68,7 @@ function FarmAppContent() {
   const [reminderDesc, setReminderDesc] = useState('');
   const [reminderDate, setReminderDate] = useState('');
   const [reminderAnimal, setReminderAnimal] = useState('');
+  const [quickWeightEntryOpen, setQuickWeightEntryOpen] = useState(false);
 
   const addAnimal = (animal: Animal) => {
     dispatch({ type: 'ADD_ANIMAL', payload: animal });
@@ -157,6 +159,10 @@ function FarmAppContent() {
     setEventModalTags([]);
   };
 
+  const handleAddWeightRecord = (animalId: string, weightRecord: WeightRecord) => {
+    dispatch({ type: 'ADD_WEIGHT_RECORD', payload: { animalId, weightRecord } });
+  };
+
   const filteredAnimals = state.animals.filter(animal => {
     const term = searchTerm.toLowerCase();
     const matchesTerm =
@@ -186,10 +192,7 @@ function FarmAppContent() {
     >
       <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full">
         {activeTab === 'dashboard' && (
-          <>
             <StatsCard />
-            <AnalyticsDashboard />
-          </>
         )}
         {activeTab === 'animals' && (
           <div className="space-y-6">
@@ -197,12 +200,21 @@ function FarmAppContent() {
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   Animals ({filteredAnimals.length})
               </h2>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setQuickWeightEntryOpen(true)}
+                    className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-md shadow-sm hover:bg-emerald-700 flex items-center gap-2"
+                  >
+                    <Scale className="h-4 w-4" />
+                    Quick Weight Entry
+                  </button>
                 <button 
                   onClick={() => setAddAnimalModalOpen(true)}
                   className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700"
                 >
                   Add Animal
                 </button>
+                </div>
               </div>
               <AnimalTable
                 animals={filteredAnimals}
@@ -333,6 +345,15 @@ function FarmAppContent() {
         />
       )}
 
+      {quickWeightEntryOpen && (
+        <QuickWeightEntry
+          animals={state.animals}
+          onAddWeight={handleAddWeightRecord}
+          isOpen={quickWeightEntryOpen}
+          onClose={() => setQuickWeightEntryOpen(false)}
+        />
+      )}
+
       {/* Reminder Modal */}
       {reminderModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -410,7 +431,7 @@ function App() {
   return (
     <AuthProvider>
       <ErrorBoundary>
-        <AppContent />
+      <AppContent />
         <Analytics />
       </ErrorBoundary>
     </AuthProvider>

@@ -47,7 +47,7 @@ export const generateId = (): string => {
 
 export const exportToCSV = (data: any[], filename: string) => {
   if (data.length === 0) return;
-  
+
   const headers = Object.keys(data[0]);
   const csvContent = [
     headers.join(','),

@@ -240,31 +240,31 @@ export const CampMap: React.FC<CampMapProps & { onAnimalClick?: (animal: Animal)
                   <br />
                   <button onClick={() => props.onDeleteCamp(camp.id || 0)} style={{ color: 'red', marginTop: 4 }}>Delete</button>
                 </Popup>
-                {/* Render animal markers for this camp */}
+                  {/* Render animal markers for this camp */}
                 {state.animals.filter(a => a.campId === camp.id && a.status === 'Active').map((animal: Animal) => {
-                  // Use animal.position if available, else camp centroid
-                  const pos = animal.position || getCampCentroid(camp);
-                  return (
-                    <Marker
-                      key={animal.id}
-                      position={[pos.lat, pos.lng]}
-                      draggable={true}
-                      eventHandlers={{
+                    // Use animal.position if available, else camp centroid
+                    const pos = animal.position || getCampCentroid(camp);
+                    return (
+                      <Marker
+                        key={animal.id}
+                        position={[pos.lat, pos.lng]}
+                        draggable={true}
+                        eventHandlers={{
                         dragend: e => handleAnimalDragEnd(animal, camp.id, e),
-                        click: () => props.onAnimalClick && props.onAnimalClick(animal),
-                      }}
-                    >
+                          click: () => props.onAnimalClick && props.onAnimalClick(animal),
+                        }}
+                      >
                       <Tooltip>{animal.tagNumber}</Tooltip>
-                      <Popup>
+                        <Popup>
                         <strong>{animal.tagNumber}</strong>
                         <br />
                         {animal.type} - {animal.breed}
                         <br />
                         Status: {animal.status}
-                      </Popup>
-                    </Marker>
-                  );
-                })}
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
               </Polygon>
             ) : null
           ))}

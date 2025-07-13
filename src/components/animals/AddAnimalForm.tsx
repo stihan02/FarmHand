@@ -94,6 +94,7 @@ export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, onClose, ex
       offspringTags: [],
       genetics: { traits: {}, lineage: [], notes: '', animalTagNumbers: [] },
       health: [],
+      weightRecords: [],
       history: [],
       photoUrl: form.photoUrl || undefined,
     };

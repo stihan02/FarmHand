@@ -11,7 +11,7 @@ import {
   ColumnFiltersState,
   RowSelectionState,
 } from '@tanstack/react-table';
-import { Animal } from '../../types';
+import { Animal, WeightRecord } from '../../types';
 import { calculateAge, formatCurrency, formatDate } from '../../utils/helpers';
 import { 
   ChevronUp, 
@@ -29,11 +29,14 @@ import {
   Calendar,
   Plus,
   Move,
-  AlertTriangle
+  AlertTriangle,
+  TrendingUp
 } from 'lucide-react';
 import { useFarm } from '../../context/FarmContext';
 import { differenceInDays, parseISO } from 'date-fns';
 import { AnimalModal } from './AnimalModal';
+import { WeightTrackingModal } from './WeightTrackingModal';
+import { QuickWeightEntry } from './QuickWeightEntry';
 import * as XLSX from 'xlsx';
 import { isMobile } from 'react-device-detect';
 
@@ -153,6 +156,9 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
   const [importFileName, setImportFileName] = useState('');
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [weightTrackingModalOpen, setWeightTrackingModalOpen] = useState(false);
+  const [selectedAnimalForWeight, setSelectedAnimalForWeight] = useState<Animal | null>(null);
+  const [quickWeightEntryOpen, setQuickWeightEntryOpen] = useState(false);
 
   const typeEmojis: Record<string, string> = {
     Sheep: '🐑',
@@ -196,6 +202,10 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     if (animal) {
       dispatch({ type: 'UPDATE_ANIMAL', payload: { ...animal, campId: newCampId } });
     }
+  };
+
+  const handleAddWeightRecord = (animalId: string, weightRecord: WeightRecord) => {
+    dispatch({ type: 'ADD_WEIGHT_RECORD', payload: { animalId, weightRecord } });
   };
 
   const getGrazingDuration = (animal: Animal) => {
@@ -359,6 +369,35 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
       size: 120,
     }),
     columnHelper.display({
+      id: 'latestWeight',
+      header: 'Latest Weight',
+      cell: ({ row }) => {
+        const animal = row.original;
+        const weightRecords = animal.weightRecords || [];
+        const latestWeight = weightRecords.length > 0 
+          ? weightRecords[weightRecords.length - 1]
+          : null;
+        
+        return (
+          <div className="text-sm">
+            {latestWeight ? (
+              <div>
+                <span className="font-medium text-gray-900 dark:text-gray-100">
+                  {latestWeight.weight} kg
+                </span>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  {new Date(latestWeight.date).toLocaleDateString()}
+                </div>
+              </div>
+            ) : (
+              <span className="text-gray-400 dark:text-gray-500">No data</span>
+            )}
+          </div>
+        );
+      },
+      size: 100,
+    }),
+    columnHelper.display({
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {
@@ -383,11 +422,23 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                 />
                 <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-20 min-w-[160px]">
                   <button
-                    onClick={e => { e.stopPropagation(); setActiveDropdown(null); }}
+                    onClick={e => { e.stopPropagation(); setActiveDropdown(null); setSelectedAnimal(animal); }}
                     className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2 dark:text-gray-200"
                   >
                     <Eye className="h-4 w-4" />
                     <span>View Profile</span>
+                  </button>
+                  <button
+                    onClick={e => { 
+                      e.stopPropagation(); 
+                      setActiveDropdown(null); 
+                      setSelectedAnimalForWeight(animal);
+                      setWeightTrackingModalOpen(true);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2 dark:text-gray-200"
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                    <span>Track Weight</span>
                   </button>
                   {animal.status === 'Active' && (
                     <>
@@ -470,7 +521,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     
     const selectedAnimalIds = table.getSelectedRowModel().flatRows.map(row => row.original.id);
     
-    if (!farmState.camps.includes(newCampName.trim())) {
+    if (!farmState.camps.find(c => c.name === newCampName.trim())) {
       dispatch({ type: 'ADD_CAMP', payload: { id: newCampName.trim().toLowerCase().replace(/\s+/g, '-'), name: newCampName.trim(), geoJson: { type: 'Feature', geometry: { type: 'Polygon', coordinates: [] } }, animals: [] } });
     }
     
@@ -573,6 +624,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
         offspringTags: [],
         genetics: { traits: {}, lineage: [], notes: '', animalTagNumbers: [] },
         health: [],
+        weightRecords: [],
         history: [{ date: new Date().toISOString().split('T')[0], description: 'Imported' }],
       };
       dispatch({ type: 'ADD_ANIMAL', payload: animal });
@@ -677,15 +729,15 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => {
-                const selected = table.getSelectedRowModel().flatRows.map(row => row.original.tagNumber);
-                onScheduleEventClick && onScheduleEventClick(selected);
-              }}
-              className="px-3 py-1.5 text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-200 dark:hover:bg-purple-900"
-            >
-              Schedule Event
-            </button>
+             <button
+                onClick={() => {
+                  const selected = table.getSelectedRowModel().flatRows.map(row => row.original.tagNumber);
+                  onScheduleEventClick && onScheduleEventClick(selected);
+                }}
+                className="px-3 py-1.5 text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-200 dark:hover:bg-purple-900"
+              >
+                Schedule Event
+              </button>
             <button
               onClick={() => handleBulkAction('sell')}
               className="px-3 py-1.5 text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-200 dark:hover:bg-blue-900"
@@ -761,7 +813,9 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                     if (multiSelectMode) {
                       setSelectedIds(prev => prev.includes(row.original.id) ? prev.filter(x => x !== row.original.id) : [...prev, row.original.id]);
                     } else {
-                      setSelectedAnimal(row.original);
+                      // Show weight tracking modal instead of animal modal
+                      setSelectedAnimalForWeight(row.original);
+                      setWeightTrackingModalOpen(true);
                     }
                   }}
                   onTouchStart={isMobile ? () => handleRowTouchStart(row.original.id) : undefined}
@@ -920,6 +974,18 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
             allAnimals={animals}
           />
         </div>
+      )}
+      
+      {selectedAnimalForWeight && (
+        <WeightTrackingModal
+          animal={selectedAnimalForWeight}
+          isOpen={weightTrackingModalOpen}
+          onClose={() => {
+            setWeightTrackingModalOpen(false);
+            setSelectedAnimalForWeight(null);
+          }}
+          onAddWeight={handleAddWeightRecord}
+        />
       )}
     </>
   );

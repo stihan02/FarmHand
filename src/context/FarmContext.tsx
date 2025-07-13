@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { Animal, Transaction, Task, Stats, Event, Camp, FarmData, InventoryItem } from '../types';
+import { Animal, Transaction, Task, Stats, Event, Camp, FarmData, InventoryItem, WeightRecord } from '../types';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
 import {
@@ -30,6 +30,7 @@ type FarmAction =
   | { type: 'UPDATE_ANIMAL'; payload: Animal }
   | { type: 'BULK_UPDATE_ANIMALS_CAMP'; payload: { animalIds: string[], campId?: string } }
   | { type: 'REMOVE_ANIMAL'; payload: string }
+  | { type: 'ADD_WEIGHT_RECORD'; payload: { animalId: string; weightRecord: WeightRecord } }
   | { type: 'ADD_TRANSACTION'; payload: Transaction }
   | { type: 'REMOVE_TRANSACTION'; payload: string }
   | { type: 'ADD_TASK'; payload: Task }
@@ -130,6 +131,16 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
           state.animals.filter(a => a.id !== action.payload),
           state.transactions,
           state.tasks
+        )
+      };
+      break;
+    case 'ADD_WEIGHT_RECORD':
+      newState = {
+        ...state,
+        animals: state.animals.map(animal => 
+          animal.id === action.payload.animalId
+            ? { ...animal, weightRecords: [...(animal.weightRecords || []), action.payload.weightRecord] }
+            : animal
         )
       };
       break;
@@ -322,6 +333,18 @@ const FarmContext = createContext<{
 
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(farmReducer, initialState);
+
+  // Migrate existing animals to include weightRecords property
+  useEffect(() => {
+    const needsMigration = state.animals.some(animal => !animal.weightRecords);
+    if (needsMigration) {
+      const migratedAnimals = state.animals.map(animal => ({
+        ...animal,
+        weightRecords: animal.weightRecords || []
+      }));
+      dispatch({ type: 'SET_ANIMALS', payload: migratedAnimals });
+    }
+  }, [state.animals]);
   const { user } = useAuth();
 
   // Firestore sync for animals, tasks, camps, events, inventory, transactions
@@ -387,11 +410,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     state.animals.forEach(async animal => {
       if (animal.id) {
         try {
-          // Remove undefined fields
-          const sanitizedAnimal = Object.fromEntries(
-            Object.entries(animal).filter(([_, v]) => v !== undefined)
-          );
-          await setDoc(doc(animalsCol, animal.id), sanitizedAnimal);
+        // Remove undefined fields
+        const sanitizedAnimal = Object.fromEntries(
+          Object.entries(animal).filter(([_, v]) => v !== undefined)
+        );
+        await setDoc(doc(animalsCol, animal.id), sanitizedAnimal);
         } catch (error) {
           console.error('Error syncing animal to Firestore:', error);
         }
@@ -406,7 +429,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     state.tasks.forEach(async task => {
       if (task.id) {
         try {
-          await setDoc(doc(tasksCol, task.id), task);
+        await setDoc(doc(tasksCol, task.id), task);
         } catch (error) {
           console.error('Error syncing task to Firestore:', error);
         }

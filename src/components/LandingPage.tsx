@@ -87,7 +87,7 @@ export const LandingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
+    <div className="min-h-screen bg-white dark:bg-slate-900 scroll-smooth">
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -118,21 +118,7 @@ export const LandingPage: React.FC = () => {
       <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            {/* Trust badges */}
-            <div className="flex items-center justify-center space-x-6 mb-8 text-sm text-slate-600 dark:text-slate-400">
-              <div className="flex items-center space-x-2">
-                <Shield className="h-4 w-4 text-blue-500" />
-                <span>Trusted by 500+ farms</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-blue-500" />
-                <span>Save 15+ hours/week</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span>4.9/5 rating</span>
-              </div>
-            </div>
+
 
             <h1 className="text-4xl sm:text-6xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
               Farm management
@@ -159,16 +145,16 @@ export const LandingPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Social proof */}
-            <div className="flex items-center justify-center space-x-8 text-sm text-slate-500 dark:text-slate-400">
-              <span>Join 500+ farmers already using HerdWise</span>
-            </div>
+
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-800/50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-800/50 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-emerald-50/50 dark:from-blue-900/10 dark:to-emerald-900/10"></div>
+        <div className="relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
@@ -192,6 +178,7 @@ export const LandingPage: React.FC = () => {
               </div>
             ))}
           </div>
+        </div>
         </div>
       </section>
 
@@ -251,7 +238,7 @@ export const LandingPage: React.FC = () => {
             Ready to transform your farm management?
           </h2>
           <p className="text-xl mb-8 text-blue-100">
-            Join hundreds of farmers who've already simplified their operations with HerdWise
+            Start managing your farm more efficiently today
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 

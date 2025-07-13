@@ -32,6 +32,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { LandingPage } from './components/LandingPage';
 import { ReportsExport } from './components/ReportsExport';
 import { QuickWeightEntry } from './components/animals/QuickWeightEntry';
+import { Onboarding } from './components/Onboarding';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory' | 'reports';
 
@@ -69,6 +70,15 @@ function FarmAppContent() {
   const [reminderDate, setReminderDate] = useState('');
   const [reminderAnimal, setReminderAnimal] = useState('');
   const [quickWeightEntryOpen, setQuickWeightEntryOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Check if user needs onboarding
+  React.useEffect(() => {
+    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+    if (!onboardingCompleted) {
+      setShowOnboarding(true);
+    }
+  }, []);
 
   const addAnimal = (animal: Animal) => {
     dispatch({ type: 'ADD_ANIMAL', payload: animal });
@@ -192,7 +202,7 @@ function FarmAppContent() {
     >
       <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full pb-20 sm:pb-6">
         {activeTab === 'dashboard' && (
-            <StatsCard />
+            <StatsCard onShowOnboarding={() => setShowOnboarding(true)} />
         )}
         {activeTab === 'animals' && (
           <div className="space-y-6 pb-20 sm:pb-6">
@@ -403,6 +413,13 @@ function FarmAppContent() {
           </div>
         </div>
       )}
+
+      {/* Onboarding Modal */}
+      <Onboarding
+        isOpen={showOnboarding}
+        onComplete={() => setShowOnboarding(false)}
+        onSkip={() => setShowOnboarding(false)}
+      />
     </Layout>
   );
 }

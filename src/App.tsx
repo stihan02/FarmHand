@@ -35,7 +35,7 @@ import { QuickWeightEntry } from './components/animals/QuickWeightEntry';
 import { Onboarding } from './components/Onboarding';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory' | 'reports';
-type SubTab = 'finances' | 'inventory' | 'tasks' | 'reports' | 'camps' | 'settings';
+type SubTab = 'finances' | 'inventory' | 'reports' | 'camps' | 'settings';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -58,7 +58,7 @@ function AppContent() {
 function FarmAppContent() {
   const { state, dispatch } = useFarm();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>('finances');
+  const [activeSubTab, setActiveSubTab] = useState<SubTab>('reports');
   const [isBulkUpdate, setIsBulkUpdate] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -379,16 +379,6 @@ function FarmAppContent() {
             <div className="sm:hidden">
               <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                 <button
-                  onClick={() => setActiveSubTab('tasks')}
-                  className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                    activeSubTab === 'tasks'
-                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                  }`}
-                >
-                  Tasks
-                </button>
-                <button
                   onClick={() => setActiveSubTab('reports')}
                   className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                     activeSubTab === 'reports'
@@ -411,52 +401,7 @@ function FarmAppContent() {
               </div>
             </div>
 
-            {/* Content based on sub-tab */}
-            {activeSubTab === 'tasks' && (
-              <div className="space-y-6 pb-20 sm:pb-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Tasks ({filteredTasks.length})
-                  </h2>
-                  <div className="flex gap-2">
-                    <button
-                      className="bg-yellow-500 text-white px-3 py-2 rounded shadow hover:bg-yellow-600"
-                      onClick={() => setReminderModalOpen(true)}
-                    >
-                      Set Reminder
-                    </button>
-                    <AddTaskForm onAdd={addTask} />
-                  </div>
-                </div>
-                
-                {filteredTasks.length === 0 ? (
-                  <div className="text-center py-12">
-                    <CheckSquare className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No tasks found</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {searchTerm 
-                        ? 'Try adjusting your search'
-                        : 'Add tasks to keep track of farm activities'
-                      }
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredTasks.map(task => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onToggleStatus={() => {
-                          const updatedTask: Task = { ...task, status: task.status === 'Pending' ? 'Completed' : 'Pending' };
-                          updateTask(updatedTask);
-                        }}
-                        onRemove={() => removeTask(task.id)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+
 
             {activeSubTab === 'reports' && (
               <ReportsExport />

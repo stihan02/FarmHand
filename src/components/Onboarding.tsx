@@ -60,7 +60,6 @@ const farmTypes = [
   { id: 'sheep', label: 'Sheep Farming', icon: '🐑', description: 'Wool or meat sheep operations' },
   { id: 'goats', label: 'Goat Farming', icon: '🐐', description: 'Dairy or meat goat operations' },
   { id: 'pigs', label: 'Pig Farming', icon: '🐷', description: 'Pork production' },
-  { id: 'poultry', label: 'Poultry Farming', icon: '🐔', description: 'Chicken, turkey, or other birds' },
   { id: 'mixed', label: 'Mixed Farming', icon: '🏡', description: 'Multiple types of livestock' },
   { id: 'other', label: 'Other', icon: '🐾', description: 'Other types of livestock' }
 ];

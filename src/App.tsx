@@ -57,6 +57,7 @@ function AppContent() {
 
 function FarmAppContent() {
   const { state, dispatch } = useFarm();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('reports');
   const [isBulkUpdate, setIsBulkUpdate] = useState(false);
@@ -76,11 +77,16 @@ function FarmAppContent() {
 
   // Check if user needs onboarding
   React.useEffect(() => {
-    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-    if (!onboardingCompleted) {
-      setShowOnboarding(true);
+    if (user) {
+      // Store current user ID for onboarding component
+      localStorage.setItem('currentUserId', user.uid);
+      
+      const onboardingCompleted = localStorage.getItem(`onboardingCompleted_${user.uid}`);
+      if (!onboardingCompleted) {
+        setShowOnboarding(true);
+      }
     }
-  }, []);
+  }, [user]);
 
   const addAnimal = (animal: Animal) => {
     dispatch({ type: 'ADD_ANIMAL', payload: animal });
@@ -561,8 +567,18 @@ function FarmAppContent() {
       {/* Onboarding Modal */}
       <Onboarding
         isOpen={showOnboarding}
-        onComplete={() => setShowOnboarding(false)}
-        onSkip={() => setShowOnboarding(false)}
+        onComplete={() => {
+          if (user) {
+            localStorage.setItem(`onboardingCompleted_${user.uid}`, 'true');
+          }
+          setShowOnboarding(false);
+        }}
+        onSkip={() => {
+          if (user) {
+            localStorage.setItem(`onboardingCompleted_${user.uid}`, 'true');
+          }
+          setShowOnboarding(false);
+        }}
       />
     </Layout>
   );

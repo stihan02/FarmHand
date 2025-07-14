@@ -117,9 +117,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
   const handleComplete = async () => {
     setIsLoading(true);
     
-    // Save onboarding completion to localStorage
-    localStorage.setItem('onboardingCompleted', 'true');
-    localStorage.setItem('onboardingCompletedDate', new Date().toISOString());
+    // Save onboarding completion to localStorage with user-specific key
+    // We'll get the user ID from the parent component
+    const userId = localStorage.getItem('currentUserId') || 'default';
+    localStorage.setItem(`onboardingCompleted_${userId}`, 'true');
+    localStorage.setItem(`onboardingCompletedDate_${userId}`, new Date().toISOString());
     
     // Add any remaining selected items
     if (selectedAnimals.length > 0) {

@@ -15,14 +15,24 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { state } = useFarm();
   const { user, signOut } = useAuth();
-  const navItems = [
-    { id: 'dashboard' as ActiveTab, label: 'Dashboard', icon: Home },
+  // Desktop navigation items (7 tabs)
+  const desktopNavItems = [
+    { id: 'dashboard' as ActiveTab, label: 'Home', icon: Home },
     { id: 'animals' as ActiveTab, label: 'Animals', icon: PawPrint },
     { id: 'finances' as ActiveTab, label: 'Finances', icon: DollarSign },
     { id: 'tasks' as ActiveTab, label: 'Tasks', icon: CheckSquare },
     { id: 'camps' as ActiveTab, label: 'Camps', icon: MapPin },
     { id: 'inventory' as ActiveTab, label: 'Inventory', icon: CheckSquare },
     { id: 'reports' as ActiveTab, label: 'Reports', icon: FileText },
+  ];
+
+  // Mobile navigation items (5 tabs - optimized)
+  const mobileNavItems = [
+    { id: 'dashboard' as ActiveTab, label: 'Home', icon: Home },
+    { id: 'animals' as ActiveTab, label: 'Animals', icon: PawPrint },
+    { id: 'finances' as ActiveTab, label: 'Business', icon: DollarSign },
+    { id: 'tasks' as ActiveTab, label: 'Tasks', icon: CheckSquare },
+    { id: 'reports' as ActiveTab, label: 'More', icon: FileText },
   ];
 
   // Count due/overdue reminders
@@ -93,7 +103,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">HerdWise</h1>
           </div>
           <div className="space-y-3">
-            {navItems.map(item => (
+            {desktopNavItems.map(item => (
                 <button
                 key={item.id}
                 onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
@@ -121,7 +131,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">HerdWise</h1>
         </div>
         <div className="space-y-3">
-          {navItems.map(item => (
+          {desktopNavItems.map(item => (
               <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
@@ -147,14 +157,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       </div>
       {/* Bottom tab bar for mobile */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700 flex justify-around items-center h-16 shadow-lg">
-        {navItems.map(item => (
+        {mobileNavItems.map(item => (
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             className={`flex flex-col items-center justify-center flex-1 h-full px-1 py-2 focus:outline-none ${activeTab === item.id ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-300'}`}
           >
             <item.icon className={`h-6 w-6 mb-1 ${activeTab === item.id ? 'scale-110' : ''}`} />
-            <span className="text-xs font-medium">{item.label.split(' ')[0]}</span>
+            <span className="text-xs font-medium">{item.label}</span>
           </button>
         ))}
       </nav>

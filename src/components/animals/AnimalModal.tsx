@@ -137,27 +137,30 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
   return (
     <>
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden border border-gray-100">
-        <div className="relative bg-gradient-to-r from-emerald-600 to-blue-600 text-white p-8">
-          <div className="absolute inset-0 bg-black/10" />
-          <div className="relative flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl">
-                <div className="text-2xl">{typeEmojis[animal.type]}</div>
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden border border-gray-100">
+          {/* Premium Header */}
+          <div className="relative bg-gradient-to-r from-emerald-600 to-blue-600 text-white p-8">
+            <div className="absolute inset-0 bg-black/10" />
+            <div className="relative flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl">
+                  <div className="text-2xl">{typeEmojis[animal.type]}</div>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Tag #{animal.tagNumber}</h2>
+                  <p className="text-emerald-100 font-medium">{animal.type} • {animal.sex === 'M' ? 'Male' : 'Female'}</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold">Tag #{animal.tagNumber}</h2>
-                <p className="text-emerald-100 font-medium">{animal.type} • {animal.sex === 'M' ? 'Male' : 'Female'}</p>
-              </div>
+              <button
+                onClick={onClose}
+                className="p-3 hover:bg-white/20 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="p-3 hover:bg-white/20 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-            >
-              <X className="h-6 w-6" />
-            </button>
           </div>
 
+          {/* Navigation Tabs */}
           <div className="border-b border-gray-200 dark:border-zinc-700">
             <nav className="flex overflow-x-auto whitespace-nowrap w-full">
               {[
@@ -186,7 +189,8 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
             </nav>
           </div>
 
-          <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 8rem)' }}>
+          <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 8rem)' }}>
+            {/* Content goes here - keeping existing content structure */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 {/* Primary Actions - Most Important Daily Tasks */}
@@ -213,32 +217,21 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
                 )}
 
                 {/* Current Weight Display */}
-                <div className="bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 p-6 rounded-xl">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="bg-emerald-600 p-2 rounded-lg">
-                        <Scale className="h-6 w-6 text-white" />
-                      </div>
+                      <Scale className="h-6 w-6 text-emerald-600" />
                       <div>
-                        <p className="text-sm font-semibold text-emerald-800 uppercase tracking-wide">Current Weight</p>
-                        <p className="text-3xl font-bold text-emerald-900">
+                        <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">Current Weight</p>
+                        <p className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">
                           {currentWeight ? `${currentWeight}kg` : 'Not recorded'}
                         </p>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => setShowWeightModal(true)}
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] flex items-center justify-center space-x-2"
-                    >
-                      <Plus className="h-5 w-5" />
-                      <span>Add Weight</span>
-                    </button>
                     {currentWeight && (
                       <button
                         onClick={() => setShowWeightModal(true)}
-                        className="px-4 py-3 border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 rounded-lg font-semibold transition-all duration-200"
+                        className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
                       >
                         View History
                       </button>

@@ -33,6 +33,7 @@ import { LandingPage } from './components/LandingPage';
 import { ReportsExport } from './components/ReportsExport';
 import { QuickWeightEntry } from './components/animals/QuickWeightEntry';
 import { Onboarding } from './components/Onboarding';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory' | 'reports';
 type SubTab = 'finances' | 'inventory' | 'reports' | 'camps' | 'settings';
@@ -41,8 +42,16 @@ function AppContent() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your farm...</p>
+        </div>
+      </div>
+    );
   }
+  
   if (!user) {
     return <LandingPage />;
   }
@@ -621,25 +630,7 @@ function FarmAppContent() {
   );
 }
 
-// ErrorBoundary component
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-  static getDerivedStateFromError(error: any) {
-    return { hasError: true, error };
-  }
-  componentDidCatch(error: any, errorInfo: any) {
-    // You can log errorInfo here if needed
-  }
-  render() {
-    if (this.state.hasError) {
-      return <div style={{ color: 'red', padding: 16 }}>Something went wrong: {String(this.state.error)}</div>;
-    }
-    return this.props.children;
-  }
-}
+
 
 function App() {
   return (

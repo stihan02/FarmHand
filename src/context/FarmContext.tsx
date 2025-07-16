@@ -30,6 +30,7 @@ type FarmAction =
   | { type: 'UPDATE_ANIMAL'; payload: Animal }
   | { type: 'BULK_UPDATE_ANIMALS_CAMP'; payload: { animalIds: string[], campId?: string } }
   | { type: 'REMOVE_ANIMAL'; payload: string }
+  | { type: 'DELETE_ANIMAL'; payload: string }
   | { type: 'ADD_WEIGHT_RECORD'; payload: { animalId: string; weightRecord: WeightRecord } }
   | { type: 'ADD_TRANSACTION'; payload: Transaction }
   | { type: 'REMOVE_TRANSACTION'; payload: string }
@@ -124,6 +125,7 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
       };
       break;
     case 'REMOVE_ANIMAL':
+    case 'DELETE_ANIMAL':
       newState = {
         ...state,
         animals: state.animals.filter(a => a.id !== action.payload),
@@ -407,17 +409,27 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!user) return;
     const animalsCol = collection(db, 'users', user.uid, 'animals');
-    state.animals.forEach(async animal => {
+    
+    const syncPromises = state.animals.map(async animal => {
       if (animal.id) {
         try {
-        // Remove undefined fields
-        const sanitizedAnimal = Object.fromEntries(
-          Object.entries(animal).filter(([_, v]) => v !== undefined)
-        );
-        await setDoc(doc(animalsCol, animal.id), sanitizedAnimal);
+          // Remove undefined fields
+          const sanitizedAnimal = Object.fromEntries(
+            Object.entries(animal).filter(([_, v]) => v !== undefined)
+          );
+          await setDoc(doc(animalsCol, animal.id), sanitizedAnimal);
         } catch (error) {
-          console.error('Error syncing animal to Firestore:', error);
+          console.error(`Error syncing animal ${animal.id} to Firestore:`, error);
+          // Could add retry logic here or user notification
         }
+      }
+    });
+    
+    // Wait for all sync operations to complete
+    Promise.allSettled(syncPromises).then(results => {
+      const failed = results.filter(result => result.status === 'rejected');
+      if (failed.length > 0) {
+        console.warn(`${failed.length} animal sync operations failed`);
       }
     });
   }, [state.animals, user]);

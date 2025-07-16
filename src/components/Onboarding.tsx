@@ -13,45 +13,45 @@ interface OnboardingProps {
 const onboardingSteps = [
   {
     id: 'welcome',
-    title: 'Welcome to HerdWise!',
-    subtitle: 'Let\'s set up a demo farm to show you the features',
+    title: 'Welcome to HerdWise! 🎉',
+    subtitle: 'Your farm management journey starts here',
     icon: Home,
-    description: 'We\'ll add sample animals and camps to demonstrate how the app works, then you can add your real data.'
+    description: 'Let\'s get your farm set up in just a few minutes. We\'ll guide you through adding your first animals and camps.'
   },
   {
     id: 'farm-info',
     title: 'Tell us about your farm',
     subtitle: 'This helps us customize your experience',
     icon: PawPrint,
-    description: 'What type of farming do you do? This helps us show you the most relevant features.'
+    description: 'What type of farming do you do? This helps us show you the most relevant features and sample data.'
   },
   {
     id: 'add-animals',
-    title: 'Add sample animals (demo)',
-    subtitle: 'See how easy animal tracking is',
+    title: 'Add your first animals',
+    subtitle: 'Start tracking your livestock',
     icon: Users,
-    description: 'We\'ll add example animals to show you the tracking features. You can replace them with your real livestock later.'
+    description: 'We\'ll add some sample animals to show you how tracking works. You can replace them with your real livestock or add more animals.'
   },
   {
     id: 'create-camps',
-    title: 'Set up sample grazing camps (demo)',
-    subtitle: 'See how camp management works',
+    title: 'Set up grazing camps',
+    subtitle: 'Organize your grazing areas',
     icon: Map,
-    description: 'We\'ll add example camps to show you how to organize grazing areas. You can replace them with your real camps later.'
+    description: 'We\'ll add example camps to show you how to organize grazing areas. You can customize them for your actual farm layout.'
   },
   {
     id: 'features',
-    title: 'Discover key features',
+    title: 'Discover powerful features',
     subtitle: 'See what HerdWise can do for you',
     icon: TrendingUp,
-    description: 'Learn about the powerful features that will help you manage your farm more efficiently.'
+    description: 'Learn about the key features that will help you manage your farm more efficiently and profitably.'
   },
   {
     id: 'complete',
-    title: 'Demo farm ready!',
-    subtitle: 'Your sample farm is set up',
+    title: 'You\'re all set! 🚀',
+    subtitle: 'Your farm is ready to go',
     icon: Check,
-    description: 'Start exploring HerdWise with the sample data, then replace it with your real farm information.'
+    description: 'Your farm is set up and ready! Start exploring the features and add your real farm data when you\'re ready.'
   }
 ];
 
@@ -138,6 +138,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
     const animalsToAdd = sampleAnimals.filter((_, index) => selectedAnimals.includes(index.toString()));
     
     animalsToAdd.forEach(animal => {
+      // Generate a realistic birthdate (1-3 years ago)
+      const yearsAgo = Math.floor(Math.random() * 3) + 1;
+      const birthdate = new Date();
+      birthdate.setFullYear(birthdate.getFullYear() - yearsAgo);
+      birthdate.setMonth(Math.floor(Math.random() * 12));
+      birthdate.setDate(Math.floor(Math.random() * 28) + 1);
+      
       const newAnimal: Animal = {
         id: uuidv4(),
         tagNumber: animal.tagNumber,
@@ -145,7 +152,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
         breed: animal.breed,
         sex: animal.sex,
         status: animal.status,
-        birthdate: '',
+        birthdate: birthdate.toISOString().split('T')[0],
         tagColor: 'White',
         campId: '',
         position: undefined,
@@ -158,7 +165,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
         },
         health: [],
         weightRecords: [],
-        history: []
+        history: [{
+          date: new Date().toISOString().split('T')[0],
+          description: 'Added as sample animal during onboarding'
+        }]
       };
       dispatch({ type: 'ADD_ANIMAL', payload: newAnimal });
     });
@@ -189,18 +199,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
       case 'welcome':
         return (
           <div className="text-center space-y-6">
-            <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto">
               <PawPrint className="w-12 h-12 text-blue-600" />
             </div>
             <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">Welcome to HerdWise!</h3>
+              <h3 className="text-2xl font-bold text-gray-900">Welcome to HerdWise! 🎉</h3>
               <p className="text-gray-600 max-w-md mx-auto">
-                Let's get your farm set up in just a few minutes. We'll help you add sample animals and camps 
-                to demonstrate how the app works, then you can add your real data.
+                Your farm management journey starts here. We'll guide you through setting up your farm 
+                with sample data so you can see how everything works.
               </p>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-sm text-yellow-800 font-medium">
-                  🎯 Demo Mode: We'll add sample data to show you the features. You can replace it with your real farm data later.
+              <div className="bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800 font-medium">
+                  💡 We'll add sample animals and camps to demonstrate the features. You can replace them with your real farm data anytime!
                 </p>
               </div>
             </div>
@@ -208,7 +218,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
               {onboardingSteps.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-2 h-2 rounded-full ${
+                  className={`w-2 h-2 rounded-full transition-colors ${
                     index === currentStep ? 'bg-blue-600' : 'bg-gray-300'
                   }`}
                 />
@@ -390,29 +400,40 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
       case 'complete':
         return (
           <div className="text-center space-y-6">
-            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-24 h-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto">
               <Check className="w-12 h-12 text-green-600" />
             </div>
             <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">You're all set!</h3>
+              <h3 className="text-2xl font-bold text-gray-900">You're all set! 🚀</h3>
               <p className="text-gray-600 max-w-md mx-auto">
-                Your demo farm is ready! We've added sample animals and camps so you can explore all the features. 
-                Now you can replace them with your real farm data.
+                Your farm is ready to go! We've added sample animals and camps so you can explore all the features. 
+                Start managing your farm like a pro!
               </p>
             </div>
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-gray-900 mb-2">What's next?</h4>
-              <ul className="text-sm text-gray-600 space-y-1 text-left">
-                <li>• Replace the sample animals with your real livestock</li>
-                <li>• Update the sample camps with your actual grazing areas</li>
-                <li>• Set up your first tasks and reminders</li>
-                <li>• Track your first weight records</li>
-                <li>• Explore the analytics dashboard</li>
-              </ul>
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border border-green-200">
+              <h4 className="font-semibold text-gray-900 mb-3">What's next?</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  <span className="text-sm text-gray-700">Add your real livestock</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm text-gray-700">Set up your grazing camps</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span className="text-sm text-gray-700">Create tasks and reminders</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span className="text-sm text-gray-700">Track weight and health</span>
+                </div>
+              </div>
             </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-sm text-yellow-800 font-medium">
-                💡 Remember: The animals and camps you see are samples. Click "Add Animal" or "Add Camp" to add your real farm data!
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800 font-medium">
+                💡 Pro tip: Use the "Quick Actions" on your dashboard to add animals, transactions, and tasks in just one click!
               </p>
             </div>
           </div>

@@ -2,10 +2,29 @@ import { useEffect, useState } from 'react';
 import { Animal, Transaction, Task, Camp, InventoryItem, Event } from '../types';
 
 export const calculateAge = (birthdate: string): string => {
+  if (!birthdate || birthdate.trim() === '') {
+    return 'Unknown';
+  }
+  
   try {
     const birth = new Date(birthdate);
     const now = new Date();
+    
+    // Check if birth date is valid
+    if (isNaN(birth.getTime())) {
+      return 'Invalid date';
+    }
+    
+    // Check if birth date is in the future
+    if (birth > now) {
+      return 'Future date';
+    }
+    
     const ageInDays = Math.floor((now.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (ageInDays < 0) {
+      return 'Invalid date';
+    }
     
     const years = Math.floor(ageInDays / 365);
     const months = Math.floor((ageInDays % 365) / 30);
@@ -17,27 +36,49 @@ export const calculateAge = (birthdate: string): string => {
     } else {
       return `${ageInDays}d`;
     }
-  } catch {
+  } catch (error) {
+    console.error('Error calculating age:', error);
     return 'Unknown';
   }
 };
 
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
+  if (typeof amount !== 'number' || isNaN(amount)) {
+    return '$0.00';
+  }
+  
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  } catch (error) {
+    console.error('Error formatting currency:', error);
+    return '$0.00';
+  }
 };
 
 export const formatDate = (date: string): string => {
+  if (!date || date.trim() === '') {
+    return 'No date';
+  }
+  
   try {
-    return new Date(date).toLocaleDateString('en-ZA', {
+    const dateObj = new Date(date);
+    
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid date';
+    }
+    
+    return dateObj.toLocaleDateString('en-ZA', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     });
-  } catch {
-    return date;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
   }
 };
 

@@ -67,6 +67,11 @@ export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, onClose, ex
         setError('Please enter a birthdate.');
         return false;
     }
+    // Check if birthdate is in the future
+    if (form.birthdate && new Date(form.birthdate) > new Date()) {
+      setError('Birth date cannot be in the future.');
+      return false;
+    }
     setError(null);
     return true;
   };

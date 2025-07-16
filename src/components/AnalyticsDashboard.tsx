@@ -87,48 +87,58 @@ export const AnalyticsDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
             <h3 className="font-semibold mb-2 text-emerald-700">Animal Status Distribution</h3>
-        <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <PieChart>
                 <Pie
                   data={animalStatusData}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
-                  cy="50%"
-                  outerRadius={100}
+                  cy="40%"
+                  outerRadius={80}
                   label
                 >
                   {animalStatusData.map((entry, idx) => (
                     <Cell key={`cell-${idx}`} fill={STATUS_COLORS[entry.name as keyof typeof STATUS_COLORS] || '#8884d8'} />
                   ))}
                 </Pie>
-            <Tooltip />
-                <Legend />
+                <Tooltip />
+                <Legend 
+                  layout="horizontal" 
+                  verticalAlign="bottom" 
+                  align="center"
+                  wrapperStyle={{ paddingTop: '20px' }}
+                />
               </PieChart>
-        </ResponsiveContainer>
-      </div>
+            </ResponsiveContainer>
+          </div>
           <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
             <h3 className="font-semibold mb-2 text-emerald-700">Health Event Types</h3>
-        <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <PieChart>
                 <Pie
                   data={healthTypeData}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
-                  cy="50%"
-                  outerRadius={100}
+                  cy="40%"
+                  outerRadius={80}
                   label
                 >
                   {healthTypeData.map((entry, idx) => (
                     <Cell key={`cell-health-${idx}`} fill={["#10b981", "#f59e42", "#ef4444", "#6366f1", "#a3e635"][idx % 5]} />
                   ))}
                 </Pie>
-            <Tooltip />
-            <Legend />
+                <Tooltip />
+                <Legend 
+                  layout="horizontal" 
+                  verticalAlign="bottom" 
+                  align="center"
+                  wrapperStyle={{ paddingTop: '20px' }}
+                />
               </PieChart>
-        </ResponsiveContainer>
-      </div>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
     </div>

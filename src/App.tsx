@@ -80,9 +80,11 @@ function FarmAppContent() {
     if (user) {
       // Store current user ID for onboarding component
       localStorage.setItem('currentUserId', user.uid);
-      
+
       const onboardingCompleted = localStorage.getItem(`onboardingCompleted_${user.uid}`);
+      console.log('Onboarding check:', { userId: user.uid, completed: onboardingCompleted });
       if (!onboardingCompleted) {
+        console.log('Showing onboarding for new user');
         setShowOnboarding(true);
       }
     }

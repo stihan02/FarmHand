@@ -14,9 +14,9 @@ const onboardingSteps = [
   {
     id: 'welcome',
     title: 'Welcome to HerdWise!',
-    subtitle: 'Let\'s get your farm set up in just a few minutes',
+    subtitle: 'Let\'s set up a demo farm to show you the features',
     icon: Home,
-    description: 'We\'ll help you add your animals, set up camps, and get started with tracking your farm operations.'
+    description: 'We\'ll add sample animals and camps to demonstrate how the app works, then you can add your real data.'
   },
   {
     id: 'farm-info',
@@ -27,17 +27,17 @@ const onboardingSteps = [
   },
   {
     id: 'add-animals',
-    title: 'Add your first animals',
-    subtitle: 'Let\'s start tracking your livestock',
+    title: 'Add sample animals (demo)',
+    subtitle: 'See how easy animal tracking is',
     icon: Users,
-    description: 'Add a few animals to see how easy it is to track them. You can add more later.'
+    description: 'We\'ll add example animals to show you the tracking features. You can replace them with your real livestock later.'
   },
   {
     id: 'create-camps',
-    title: 'Set up your grazing camps',
-    subtitle: 'Organize your land for better management',
+    title: 'Set up sample grazing camps (demo)',
+    subtitle: 'See how camp management works',
     icon: Map,
-    description: 'Create camps to track where your animals are grazing and manage rotations.'
+    description: 'We\'ll add example camps to show you how to organize grazing areas. You can replace them with your real camps later.'
   },
   {
     id: 'features',
@@ -48,10 +48,10 @@ const onboardingSteps = [
   },
   {
     id: 'complete',
-    title: 'You\'re all set!',
-    subtitle: 'Your farm is ready to go',
+    title: 'Demo farm ready!',
+    subtitle: 'Your sample farm is set up',
     icon: Check,
-    description: 'Start exploring HerdWise and see how it can transform your farm management.'
+    description: 'Start exploring HerdWise with the sample data, then replace it with your real farm information.'
   }
 ];
 
@@ -65,16 +65,16 @@ const farmTypes = [
 ];
 
 const sampleAnimals = [
-  { type: 'Cattle', tagNumber: 'C001', breed: 'Angus', sex: 'Female', status: 'Active' },
-  { type: 'Cattle', tagNumber: 'C002', breed: 'Hereford', sex: 'Male', status: 'Active' },
-  { type: 'Sheep', tagNumber: 'S001', breed: 'Merino', sex: 'Female', status: 'Active' },
-  { type: 'Goat', tagNumber: 'G001', breed: 'Boer', sex: 'Female', status: 'Active' }
+  { type: 'Cattle', tagNumber: 'C001', breed: 'Angus', sex: 'F' as const, status: 'Active' as const },
+  { type: 'Cattle', tagNumber: 'C002', breed: 'Hereford', sex: 'M' as const, status: 'Active' as const },
+  { type: 'Sheep', tagNumber: 'S001', breed: 'Merino', sex: 'F' as const, status: 'Active' as const },
+  { type: 'Goat', tagNumber: 'G001', breed: 'Boer', sex: 'F' as const, status: 'Active' as const }
 ];
 
 const sampleCamps = [
-  { name: 'North Pasture', description: 'Main grazing area', area: '50 acres' },
-  { name: 'South Field', description: 'Secondary grazing area', area: '30 acres' },
-  { name: 'Hay Field', description: 'For hay production', area: '20 acres' }
+  { name: 'North Pasture', area: '50 acres' },
+  { name: 'South Field', area: '30 acres' },
+  { name: 'Hay Field', area: '20 acres' }
 ];
 
 export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSkip }) => {
@@ -146,9 +146,19 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
         sex: animal.sex,
         status: animal.status,
         birthdate: '',
+        tagColor: 'White',
         campId: '',
+        position: undefined,
+        offspringTags: [],
+        genetics: {
+          traits: {},
+          lineage: [],
+          notes: '',
+          animalTagNumbers: []
+        },
+        health: [],
         weightRecords: [],
-        events: []
+        history: []
       };
       dispatch({ type: 'ADD_ANIMAL', payload: newAnimal });
     });
@@ -161,10 +171,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
       const newCamp: Camp = {
         id: uuidv4(),
         name: camp.name,
-        description: camp.description,
-        area: camp.area,
-        coordinates: [],
-        animalIds: []
+        geoJson: {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [0, 0]
+          }
+        },
+        animals: []
       };
       dispatch({ type: 'ADD_CAMP', payload: newCamp });
     });
@@ -181,9 +195,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
             <div className="space-y-4">
               <h3 className="text-2xl font-bold text-gray-900">Welcome to HerdWise!</h3>
               <p className="text-gray-600 max-w-md mx-auto">
-                Let's get your farm set up in just a few minutes. We'll help you add your animals, 
-                set up camps, and get started with tracking your farm operations.
+                Let's get your farm set up in just a few minutes. We'll help you add sample animals and camps 
+                to demonstrate how the app works, then you can add your real data.
               </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 font-medium">
+                  🎯 Demo Mode: We'll add sample data to show you the features. You can replace it with your real farm data later.
+                </p>
+              </div>
             </div>
             <div className="flex justify-center space-x-2">
               {onboardingSteps.map((_, index) => (
@@ -233,8 +252,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
         return (
           <div className="space-y-6">
             <div className="text-center space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">Add some sample animals</h3>
-              <p className="text-gray-600">Select a few to see how easy tracking is. You can add your real animals later.</p>
+              <h3 className="text-2xl font-bold text-gray-900">Add sample animals (for demonstration)</h3>
+              <p className="text-gray-600">These are EXAMPLE animals to show you how the app works. You can add your real animals later.</p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800 font-medium">💡 Demo Mode: These are sample animals to help you explore the features</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {sampleAnimals.map((animal, index) => (
@@ -254,7 +276,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-semibold text-gray-900">{animal.type} #{animal.tagNumber}</div>
+                      <div className="font-semibold text-gray-900">
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded mr-2">SAMPLE</span>
+                        {animal.type} #{animal.tagNumber}
+                      </div>
                       <div className="text-sm text-gray-600">{animal.breed} • {animal.sex}</div>
                     </div>
                     <div className="text-2xl">
@@ -269,7 +294,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
                 onClick={() => setSelectedAnimals(sampleAnimals.map((_, i) => i.toString()))}
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
-                Select all
+                Select all samples
               </button>
             </div>
           </div>
@@ -279,8 +304,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
         return (
           <div className="space-y-6">
             <div className="text-center space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">Set up your grazing camps</h3>
-              <p className="text-gray-600">Create camps to organize your land and track grazing rotations.</p>
+              <h3 className="text-2xl font-bold text-gray-900">Set up sample grazing camps (for demonstration)</h3>
+              <p className="text-gray-600">These are EXAMPLE camps to show you how camp management works. You can add your real camps later.</p>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm text-green-800 font-medium">💡 Demo Mode: These are sample camps to help you explore the features</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {sampleCamps.map((camp, index) => (
@@ -294,14 +322,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
                   }}
                   className={`p-4 rounded-lg border-2 text-left transition-all ${
                     selectedCamps.includes(index.toString())
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-green-500 bg-green-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <div className="space-y-2">
-                    <div className="font-semibold text-gray-900">{camp.name}</div>
-                    <div className="text-sm text-gray-600">{camp.description}</div>
-                    <div className="text-sm text-gray-500">{camp.area}</div>
+                    <div className="font-semibold text-gray-900">
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded mr-2">SAMPLE</span>
+                      {camp.name}
+                    </div>
+                    <div className="text-sm text-gray-600">{camp.area}</div>
                   </div>
                 </button>
               ))}
@@ -366,17 +396,24 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
             <div className="space-y-4">
               <h3 className="text-2xl font-bold text-gray-900">You're all set!</h3>
               <p className="text-gray-600 max-w-md mx-auto">
-                Your farm is ready to go. Start exploring HerdWise and see how it can transform your farm management.
+                Your demo farm is ready! We've added sample animals and camps so you can explore all the features. 
+                Now you can replace them with your real farm data.
               </p>
             </div>
             <div className="bg-blue-50 p-4 rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-2">What's next?</h4>
               <ul className="text-sm text-gray-600 space-y-1 text-left">
-                <li>• Add your real animals and camps</li>
+                <li>• Replace the sample animals with your real livestock</li>
+                <li>• Update the sample camps with your actual grazing areas</li>
                 <li>• Set up your first tasks and reminders</li>
                 <li>• Track your first weight records</li>
                 <li>• Explore the analytics dashboard</li>
               </ul>
+            </div>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-yellow-800 font-medium">
+                💡 Remember: The animals and camps you see are samples. Click "Add Animal" or "Add Camp" to add your real farm data!
+              </p>
             </div>
           </div>
         );
@@ -394,7 +431,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <PawPrint className="w-8 h-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">HerdWise Setup</span>
+              <div>
+                <span className="text-xl font-bold text-gray-900">HerdWise Setup</span>
+                <div className="text-xs text-blue-600 font-medium">DEMO MODE - Sample Data</div>
+              </div>
             </div>
             <button
               onClick={onSkip}

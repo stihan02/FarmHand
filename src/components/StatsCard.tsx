@@ -6,9 +6,19 @@ import { WeatherWidget } from './WeatherWidget';
 
 interface StatsCardProps {
   onShowOnboarding?: () => void;
+  onNavigate: (tab: 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory' | 'reports') => void;
+  onAddAnimal: () => void;
+  onAddTransaction: () => void;
+  onAddTask: () => void;
 }
 
-export const StatsCard: React.FC<StatsCardProps> = ({ onShowOnboarding }) => {
+export const StatsCard: React.FC<StatsCardProps> = ({ 
+  onShowOnboarding, 
+  onNavigate, 
+  onAddAnimal, 
+  onAddTransaction, 
+  onAddTask 
+}) => {
   const { state } = useFarm();
   const { active, totalIncome, totalExpenses, balance, pendingTasks } = state.stats;
   const isNewUser = state.animals.length === 0 && state.camps.length === 0;
@@ -35,7 +45,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({ onShowOnboarding }) => {
                   Guided Setup
                 </button>
                 <button
-                  onClick={() => window.location.href = '#animals'}
+                  onClick={onAddAnimal}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
                 >
                   <Users className="w-4 h-4 mr-2" />
@@ -119,28 +129,28 @@ export const StatsCard: React.FC<StatsCardProps> = ({ onShowOnboarding }) => {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <button
-              onClick={() => window.location.href = '#animals'}
+              onClick={onAddAnimal}
               className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <Users className="w-5 h-5 text-emerald-600" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Animal</span>
             </button>
             <button
-              onClick={() => window.location.href = '#finances'}
+              onClick={onAddTransaction}
               className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <DollarSign className="w-5 h-5 text-blue-600" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Transaction</span>
             </button>
             <button
-              onClick={() => window.location.href = '#tasks'}
+              onClick={onAddTask}
               className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <CheckSquare className="w-5 h-5 text-orange-600" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Task</span>
             </button>
             <button
-              onClick={() => window.location.href = '#camps'}
+              onClick={() => onNavigate('camps')}
               className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <Bot className="w-5 h-5 text-purple-600" />

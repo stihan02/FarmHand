@@ -34,6 +34,9 @@ import { ReportsExport } from './components/ReportsExport';
 import { QuickWeightEntry } from './components/animals/QuickWeightEntry';
 import { Onboarding } from './components/Onboarding';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { MobileDashboard } from './components/MobileDashboard';
+import { ResponsiveDashboard } from './components/ResponsiveDashboard';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory' | 'reports';
 type SubTab = 'finances' | 'inventory' | 'reports' | 'camps' | 'settings';
@@ -58,6 +61,7 @@ function AppContent() {
 
   return (
     <FarmProvider>
+      <PWAInstallPrompt />
       <FeedbackButton />
       <FarmAppContent />
     </FarmProvider>
@@ -221,7 +225,13 @@ function FarmAppContent() {
     >
       <main className="flex-1 p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-auto w-full pb-20 sm:pb-6">
         {activeTab === 'dashboard' && (
-            <StatsCard onShowOnboarding={() => setShowOnboarding(true)} />
+          <ResponsiveDashboard
+            onNavigate={setActiveTab}
+            onAddAnimal={() => setAddAnimalModalOpen(true)}
+            onAddTransaction={() => setActiveTab('finances')}
+            onAddTask={() => setActiveTab('tasks')}
+            onShowOnboarding={() => setShowOnboarding(true)}
+          />
         )}
         {activeTab === 'animals' && (
           <div className="space-y-6 pb-20 sm:pb-6">

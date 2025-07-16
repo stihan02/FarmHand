@@ -35,6 +35,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     { id: 'reports' as ActiveTab, label: 'More', icon: FileText },
   ];
 
+  // Handle mobile tab press with haptic feedback
+  const handleMobileTabPress = (tab: ActiveTab) => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50); // Short vibration for feedback
+    }
+    setActiveTab(tab);
+  };
+
   // Count due/overdue reminders
   const now = new Date();
   const dueReminders = state.tasks.filter(
@@ -152,18 +160,20 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         </main>
       </div>
       {/* Main content for mobile (below sidebar) */}
-      <div className="sm:hidden">
-        {children}
+      <div className="sm:hidden pb-20">
+        <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
+          {children}
+        </div>
       </div>
       {/* Bottom tab bar for mobile */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700 flex justify-around items-center h-16 shadow-lg">
         {mobileNavItems.map(item => (
           <button
             key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`flex flex-col items-center justify-center flex-1 h-full px-1 py-2 focus:outline-none ${activeTab === item.id ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-300'}`}
+            onClick={() => handleMobileTabPress(item.id)}
+            className={`flex flex-col items-center justify-center flex-1 h-full px-1 py-2 focus:outline-none transition-all duration-200 active:scale-95 ${activeTab === item.id ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-300'}`}
           >
-            <item.icon className={`h-6 w-6 mb-1 ${activeTab === item.id ? 'scale-110' : ''}`} />
+            <item.icon className={`h-6 w-6 mb-1 transition-transform duration-200 ${activeTab === item.id ? 'scale-110' : ''}`} />
             <span className="text-xs font-medium">{item.label}</span>
           </button>
         ))}

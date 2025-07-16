@@ -264,26 +264,24 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
                   </select>
                 </div>
 
-                {/* Current Weight Display */}
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg">
+                {/* Weight Management - Small and Secondary */}
+                <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <Scale className="h-6 w-6 text-emerald-600" />
+                      <Scale className="h-5 w-5 text-gray-600" />
                       <div>
-                        <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">Current Weight</p>
-                        <p className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">
+                        <p className="text-sm text-gray-600">Weight</p>
+                        <p className="font-medium text-gray-900">
                           {currentWeight ? `${currentWeight}kg` : 'Not recorded'}
                         </p>
                       </div>
                     </div>
-                    {currentWeight && (
-                      <button
-                        onClick={() => setShowWeightModal(true)}
-                        className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
-                      >
-                        View History
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setShowWeightModal(true)}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Manage Weight
+                    </button>
                   </div>
                 </div>
 
@@ -293,18 +291,18 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <button
-                        onClick={() => setShowWeightModal(true)}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white py-4 px-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] flex items-center justify-center space-x-3"
-                      >
-                        <Scale className="h-6 w-6" />
-                        <span className="text-lg">Add Weight</span>
-                      </button>
-                      <button
                         onClick={() => setActiveTab('sell')}
                         className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] flex items-center justify-center space-x-3"
                       >
                         <DollarSign className="h-6 w-6" />
                         <span className="text-lg">Mark Sold</span>
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('deceased')}
+                        className="bg-red-600 hover:bg-red-700 text-white py-4 px-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] flex items-center justify-center space-x-3"
+                      >
+                        <AlertTriangle className="h-6 w-6" />
+                        <span className="text-lg">Mark Deceased</span>
                       </button>
                     </div>
                   </div>

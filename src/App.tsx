@@ -333,6 +333,41 @@ function FarmAppContent() {
           {activeTab === 'inventory' && (
             <InventoryList />
           )}
+
+          {/* Desktop: Show finances */}
+          {activeTab === 'finances' && (
+            <div className="hidden sm:block space-y-6 pb-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Finances ({filteredTransactions.length})
+                </h2>
+                <AddTransactionForm onAdd={addTransaction} />
+              </div>
+              
+              {filteredTransactions.length === 0 ? (
+                <div className="text-center py-12">
+                  <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No transactions found</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {searchTerm 
+                      ? 'Try adjusting your search'
+                      : 'Start tracking your farm finances'
+                    }
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredTransactions.map(transaction => (
+                    <TransactionCard
+                      key={transaction.id}
+                      transaction={transaction}
+                      onRemove={() => removeTransaction(transaction.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {activeTab === 'reports' && (
           <div className="space-y-6">
             {/* Mobile sub-navigation */}

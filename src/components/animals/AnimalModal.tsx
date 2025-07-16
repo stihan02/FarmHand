@@ -193,52 +193,6 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
             {/* Content goes here - keeping existing content structure */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
-                {/* Primary Actions - Most Important Daily Tasks */}
-                {animal.status === 'Active' && (
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <button
-                        onClick={() => setShowWeightModal(true)}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white py-4 px-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] flex items-center justify-center space-x-3"
-                      >
-                        <Scale className="h-6 w-6" />
-                        <span className="text-lg">Add Weight</span>
-                      </button>
-                      <button
-                        onClick={() => setActiveTab('sell')}
-                        className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] flex items-center justify-center space-x-3"
-                      >
-                        <DollarSign className="h-6 w-6" />
-                        <span className="text-lg">Mark Sold</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Current Weight Display */}
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Scale className="h-6 w-6 text-emerald-600" />
-                      <div>
-                        <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">Current Weight</p>
-                        <p className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">
-                          {currentWeight ? `${currentWeight}kg` : 'Not recorded'}
-                        </p>
-                      </div>
-                    </div>
-                    {currentWeight && (
-                      <button
-                        onClick={() => setShowWeightModal(true)}
-                        className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
-                      >
-                        View History
-                      </button>
-                    )}
-                  </div>
-                </div>
-
                 {/* Animal Photo */}
                 {animal.photoUrl && (
                   <div className="flex flex-col items-center">
@@ -309,6 +263,52 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
                     ))}
                   </select>
                 </div>
+
+                {/* Current Weight Display */}
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Scale className="h-6 w-6 text-emerald-600" />
+                      <div>
+                        <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">Current Weight</p>
+                        <p className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">
+                          {currentWeight ? `${currentWeight}kg` : 'Not recorded'}
+                        </p>
+                      </div>
+                    </div>
+                    {currentWeight && (
+                      <button
+                        onClick={() => setShowWeightModal(true)}
+                        className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
+                      >
+                        View History
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Primary Actions - Most Important Daily Tasks */}
+                {animal.status === 'Active' && (
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setShowWeightModal(true)}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white py-4 px-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] flex items-center justify-center space-x-3"
+                      >
+                        <Scale className="h-6 w-6" />
+                        <span className="text-lg">Add Weight</span>
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('sell')}
+                        className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] flex items-center justify-center space-x-3"
+                      >
+                        <DollarSign className="h-6 w-6" />
+                        <span className="text-lg">Mark Sold</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Secondary Information - Collapsible or Less Prominent */}
                 <details className="group">

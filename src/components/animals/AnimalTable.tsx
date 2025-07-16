@@ -813,9 +813,8 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
                     if (multiSelectMode) {
                       setSelectedIds(prev => prev.includes(row.original.id) ? prev.filter(x => x !== row.original.id) : [...prev, row.original.id]);
                     } else {
-                      // Show weight tracking modal instead of animal modal
-                      setSelectedAnimalForWeight(row.original);
-                      setWeightTrackingModalOpen(true);
+                      // Show animal modal with animal info first
+                      setSelectedAnimal(row.original);
                     }
                   }}
                   onTouchStart={isMobile ? () => handleRowTouchStart(row.original.id) : undefined}
@@ -976,15 +975,18 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
         </div>
       )}
       
-      {selectedAnimalForWeight && (
+      {selectedAnimalForWeight && weightTrackingModalOpen && (
         <WeightTrackingModal
           animal={selectedAnimalForWeight}
-          isOpen={weightTrackingModalOpen}
           onClose={() => {
             setWeightTrackingModalOpen(false);
             setSelectedAnimalForWeight(null);
           }}
-          onAddWeight={handleAddWeightRecord}
+          onUpdate={updated => {
+            dispatch({ type: 'UPDATE_ANIMAL', payload: updated });
+            setWeightTrackingModalOpen(false);
+            setSelectedAnimalForWeight(null);
+          }}
         />
       )}
     </>

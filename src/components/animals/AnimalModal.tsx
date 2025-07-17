@@ -40,16 +40,9 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
   const mother = allAnimals.find(a => a.tagNumber === animal.motherTag);
   const father = allAnimals.find(a => a.tagNumber === animal.fatherTag);
 
-  // Extract current weight from history
-  const weightEntries = animal.history
-    .filter(event => event.description.includes('Weight:'))
-    .map(event => {
-      const weightMatch = event.description.match(/Weight: ([\d.]+)/);
-      return weightMatch ? parseFloat(weightMatch[1]) : 0;
-    })
-    .sort((a, b) => b - a);
-
-  const currentWeight = weightEntries.length > 0 ? weightEntries[0] : null;
+  // Get current weight from weightRecords
+  const weightRecords = animal.weightRecords || [];
+  const currentWeight = weightRecords.length > 0 ? weightRecords[weightRecords.length - 1].weight : null;
 
   const handleSell = () => {
     if (!sellData.price || !sellData.date) {
@@ -386,6 +379,28 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
                     >
                       Add First Weight
                     </button>
+                  </div>
+                )}
+
+                {/* Weight History */}
+                {weightRecords.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">Weight History</h4>
+                    <div className="space-y-2">
+                      {weightRecords.slice().reverse().map((record, index) => (
+                        <div key={index} className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg p-3">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{record.weight}kg</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(record.date)}</p>
+                            </div>
+                            {record.notes && (
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{record.notes}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

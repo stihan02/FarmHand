@@ -164,6 +164,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
           {children}
         </div>
+        {/* Mobile footer with legal links */}
+        <div className="bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700 p-4">
+          <div className="flex justify-center space-x-6 text-xs text-gray-500 dark:text-gray-400">
+            <a href="/privacy-policy.html" target="_blank" className="hover:text-emerald-600 dark:hover:text-emerald-400">Privacy</a>
+            <a href="/terms-of-service.html" target="_blank" className="hover:text-emerald-600 dark:hover:text-emerald-400">Terms</a>
+            <a href="mailto:stihancoetzee0@gmail.com" className="hover:text-emerald-600 dark:hover:text-emerald-400">Contact</a>
+          </div>
+        </div>
       </div>
       {/* Bottom tab bar for mobile */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700 flex justify-around items-center h-16 shadow-lg">

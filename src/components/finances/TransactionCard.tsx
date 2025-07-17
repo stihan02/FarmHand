@@ -9,7 +9,7 @@ interface TransactionCardProps {
 }
 
 export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onRemove }) => {
-  const isIncome = transaction.type === 'Income';
+  const isIncome = transaction.type === 'income';
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all duration-200">

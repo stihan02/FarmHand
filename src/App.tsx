@@ -24,6 +24,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { StatsCard } from './components/StatsCard';
 import { CampManagement } from './components/camps/CampManagement';
 import InventoryList from './components/inventory/InventoryList';
+import { InventoryReports } from './components/inventory/InventoryReports';
 import { AnimalModal } from './components/animals/AnimalModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthForm } from './components/Auth/AuthForm';
@@ -73,6 +74,7 @@ function FarmAppContent() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('reports');
+  const [inventoryView, setInventoryView] = useState<'list' | 'reports'>('list');
   const [isBulkUpdate, setIsBulkUpdate] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -350,7 +352,60 @@ function FarmAppContent() {
 
 
           {activeTab === 'inventory' && (
-            <InventoryList />
+            <div className="space-y-6">
+              {/* Mobile sub-navigation */}
+              <div className="sm:hidden">
+                <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                  <button
+                    onClick={() => setInventoryView('list')}
+                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                      inventoryView === 'list'
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Inventory
+                  </button>
+                  <button
+                    onClick={() => setInventoryView('reports')}
+                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                      inventoryView === 'reports'
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Reports
+                  </button>
+                </div>
+              </div>
+
+              {/* Desktop navigation */}
+              <div className="hidden sm:flex space-x-4 border-b border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => setInventoryView('list')}
+                  className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                    inventoryView === 'list'
+                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Inventory List
+                </button>
+                <button
+                  onClick={() => setInventoryView('reports')}
+                  className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                    inventoryView === 'reports'
+                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Reports & Analytics
+                </button>
+              </div>
+
+              {inventoryView === 'list' && <InventoryList />}
+              {inventoryView === 'reports' && <InventoryReports />}
+            </div>
           )}
 
           {/* Desktop: Show finances */}

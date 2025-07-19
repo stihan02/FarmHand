@@ -107,7 +107,7 @@ export const LandingPage: React.FC = () => {
                 onClick={() => handleAuthClick('signup')}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
-                Start Free Trial
+                Get Started Free
               </button>
             </div>
           </div>
@@ -134,7 +134,7 @@ export const LandingPage: React.FC = () => {
                 onClick={() => handleAuthClick('signup')}
                 className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
               >
-                Start Free Trial
+                Get Started Free
                 <ArrowRight className="ml-2 h-5 w-5" />
               </button>
               <button 
@@ -245,7 +245,7 @@ export const LandingPage: React.FC = () => {
               onClick={() => handleAuthClick('signup')}
               className="inline-flex items-center justify-center bg-white text-blue-600 font-semibold px-8 py-4 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
             >
-              Start Free Trial
+              Get Started Free
               <ArrowRight className="ml-2 h-5 w-5" />
             </button>
             <button 

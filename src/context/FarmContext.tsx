@@ -357,6 +357,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const animalsCol = collection(db, 'users', user.uid, 'animals');
     const unsubAnimals = onSnapshot(animalsCol, snapshot => {
       const animals: Animal[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Animal));
+      console.log('Firestore animal listener received:', animals.length, 'animals');
       dispatch({ type: 'SET_ANIMALS', payload: animals });
     });
     // Listen for tasks
@@ -483,18 +484,26 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     const animalsCol = collection(db, 'users', user.uid, 'animals');
     
+    console.log('Animal sync effect triggered. Current animals:', state.animals.length);
+    
     // Get current animals from Firestore to compare with local state
     getDocs(animalsCol).then(snapshot => {
       const firestoreAnimalIds = snapshot.docs.map(doc => doc.id);
       const localAnimalIds = state.animals.map(a => a.id);
       
+      console.log('Firestore animal IDs:', firestoreAnimalIds);
+      console.log('Local animal IDs:', localAnimalIds);
+      
       // Find animals that exist in Firestore but not in local state (deleted)
       const deletedAnimalIds = firestoreAnimalIds.filter(id => !localAnimalIds.includes(id));
+      
+      console.log('Animals to delete from Firestore:', deletedAnimalIds);
       
       // Delete animals from Firestore that were removed locally
       deletedAnimalIds.forEach(async animalId => {
         try {
           await deleteDoc(doc(animalsCol, animalId));
+          console.log('Deleted animal from Firestore:', animalId);
         } catch (error) {
           console.error('Error deleting animal from Firestore:', error);
         }
@@ -509,7 +518,9 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const sanitizedAnimal = Object.fromEntries(
             Object.entries(animal).filter(([_, v]) => v !== undefined)
           );
+          console.log('Syncing animal to Firestore:', animal.id);
           await setDoc(doc(animalsCol, animal.id), sanitizedAnimal);
+          console.log('Successfully synced animal:', animal.id);
         } catch (error) {
           console.error(`Error syncing animal ${animal.id} to Firestore:`, error);
           // Could add retry logic here or user notification

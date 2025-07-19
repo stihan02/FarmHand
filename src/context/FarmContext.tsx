@@ -405,11 +405,100 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // eslint-disable-next-line
   }, [user]);
 
+  // Sync transaction changes to Firestore
+  useEffect(() => {
+    if (!user) return;
+    const transactionsCol = collection(db, 'users', user.uid, 'transactions');
+    
+    // Get current transactions from Firestore to compare with local state
+    getDocs(transactionsCol).then(snapshot => {
+      const firestoreTransactionIds = snapshot.docs.map(doc => doc.id);
+      const localTransactionIds = state.transactions.map(t => t.id);
+      
+      // Find transactions that exist in Firestore but not in local state (deleted)
+      const deletedTransactionIds = firestoreTransactionIds.filter(id => !localTransactionIds.includes(id));
+      
+      // Delete transactions from Firestore that were removed locally
+      deletedTransactionIds.forEach(async transactionId => {
+        try {
+          await deleteDoc(doc(transactionsCol, transactionId));
+        } catch (error) {
+          console.error('Error deleting transaction from Firestore:', error);
+        }
+      });
+    });
+    
+    // Sync existing transactions
+    state.transactions.forEach(async transaction => {
+      if (transaction.id) {
+        try {
+          await setDoc(doc(transactionsCol, transaction.id), transaction);
+        } catch (error) {
+          console.error('Error syncing transaction to Firestore:', error);
+        }
+      }
+    });
+  }, [state.transactions, user]);
+
+  // Sync task changes to Firestore
+  useEffect(() => {
+    if (!user) return;
+    const tasksCol = collection(db, 'users', user.uid, 'tasks');
+    
+    // Get current tasks from Firestore to compare with local state
+    getDocs(tasksCol).then(snapshot => {
+      const firestoreTaskIds = snapshot.docs.map(doc => doc.id);
+      const localTaskIds = state.tasks.map(t => t.id);
+      
+      // Find tasks that exist in Firestore but not in local state (deleted)
+      const deletedTaskIds = firestoreTaskIds.filter(id => !localTaskIds.includes(id));
+      
+      // Delete tasks from Firestore that were removed locally
+      deletedTaskIds.forEach(async taskId => {
+        try {
+          await deleteDoc(doc(tasksCol, taskId));
+        } catch (error) {
+          console.error('Error deleting task from Firestore:', error);
+        }
+      });
+    });
+    
+    // Sync existing tasks
+    state.tasks.forEach(async task => {
+      if (task.id) {
+        try {
+          await setDoc(doc(tasksCol, task.id), task);
+        } catch (error) {
+          console.error('Error syncing task to Firestore:', error);
+        }
+      }
+    });
+  }, [state.tasks, user]);
+
   // Sync animal changes to Firestore
   useEffect(() => {
     if (!user) return;
     const animalsCol = collection(db, 'users', user.uid, 'animals');
     
+    // Get current animals from Firestore to compare with local state
+    getDocs(animalsCol).then(snapshot => {
+      const firestoreAnimalIds = snapshot.docs.map(doc => doc.id);
+      const localAnimalIds = state.animals.map(a => a.id);
+      
+      // Find animals that exist in Firestore but not in local state (deleted)
+      const deletedAnimalIds = firestoreAnimalIds.filter(id => !localAnimalIds.includes(id));
+      
+      // Delete animals from Firestore that were removed locally
+      deletedAnimalIds.forEach(async animalId => {
+        try {
+          await deleteDoc(doc(animalsCol, animalId));
+        } catch (error) {
+          console.error('Error deleting animal from Firestore:', error);
+        }
+      });
+    });
+    
+    // Sync existing animals
     const syncPromises = state.animals.map(async animal => {
       if (animal.id) {
         try {
@@ -434,25 +523,30 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   }, [state.animals, user]);
 
-  // Sync task changes to Firestore
-  useEffect(() => {
-    if (!user) return;
-    const tasksCol = collection(db, 'users', user.uid, 'tasks');
-    state.tasks.forEach(async task => {
-      if (task.id) {
-        try {
-        await setDoc(doc(tasksCol, task.id), task);
-        } catch (error) {
-          console.error('Error syncing task to Firestore:', error);
-        }
-      }
-    });
-  }, [state.tasks, user]);
-
   // Sync camp changes to Firestore
   useEffect(() => {
     if (!user) return;
     const campsCol = collection(db, 'users', user.uid, 'camps');
+    
+    // Get current camps from Firestore to compare with local state
+    getDocs(campsCol).then(snapshot => {
+      const firestoreCampIds = snapshot.docs.map(doc => doc.id);
+      const localCampIds = state.camps.map(c => c.id);
+      
+      // Find camps that exist in Firestore but not in local state (deleted)
+      const deletedCampIds = firestoreCampIds.filter(id => !localCampIds.includes(id));
+      
+      // Delete camps from Firestore that were removed locally
+      deletedCampIds.forEach(async campId => {
+        try {
+          await deleteDoc(doc(campsCol, campId));
+        } catch (error) {
+          console.error('Error deleting camp from Firestore:', error);
+        }
+      });
+    });
+    
+    // Sync existing camps
     state.camps.forEach(async camp => {
       if (camp.id) {
         try {
@@ -491,6 +585,26 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!user) return;
     const inventoryCol = collection(db, 'users', user.uid, 'inventory');
+    
+    // Get current inventory from Firestore to compare with local state
+    getDocs(inventoryCol).then(snapshot => {
+      const firestoreInventoryIds = snapshot.docs.map(doc => doc.id);
+      const localInventoryIds = state.inventory.map(item => item.id);
+      
+      // Find inventory items that exist in Firestore but not in local state (deleted)
+      const deletedInventoryIds = firestoreInventoryIds.filter(id => !localInventoryIds.includes(id));
+      
+      // Delete inventory items from Firestore that were removed locally
+      deletedInventoryIds.forEach(async itemId => {
+        try {
+          await deleteDoc(doc(inventoryCol, itemId));
+        } catch (error) {
+          console.error('Error deleting inventory item from Firestore:', error);
+        }
+      });
+    });
+    
+    // Sync existing inventory items
     state.inventory.forEach(async item => {
       if (item.id) {
         try {
@@ -501,21 +615,6 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
   }, [state.inventory, user]);
-
-  // Sync transaction changes to Firestore
-  useEffect(() => {
-    if (!user) return;
-    const transactionsCol = collection(db, 'users', user.uid, 'transactions');
-    state.transactions.forEach(async transaction => {
-      if (transaction.id) {
-        try {
-          await setDoc(doc(transactionsCol, transaction.id), transaction);
-        } catch (error) {
-          console.error('Error syncing transaction to Firestore:', error);
-        }
-      }
-    });
-  }, [state.transactions, user]);
 
   // Keep other data in localStorage as before
   useEffect(() => {

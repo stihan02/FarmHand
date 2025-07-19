@@ -30,24 +30,29 @@ const InventoryList: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   const handleAddSave = (item: Omit<InventoryItem, 'id' | 'history' | 'lastUsed'>) => {
+    const inventoryItem = {
+      ...item,
+      id: uuidv4(),
+      history: [{ date: new Date().toISOString(), change: item.quantity, reason: 'Initial stock' }],
+    };
+    
     dispatch({
       type: 'ADD_INVENTORY_ITEM',
-      payload: {
-        ...item,
-        id: uuidv4(),
-        history: [{ date: new Date().toISOString(), change: item.quantity, reason: 'Initial stock' }],
-      },
+      payload: inventoryItem,
     });
+    
     if (item.price && item.price > 0 && item.quantity > 0) {
+      const transaction = {
+        id: uuidv4(),
+        type: 'expense' as const,
+        description: `Inventory: ${item.name}`,
+        amount: item.price * item.quantity,
+        date: new Date().toISOString(),
+      };
+      
       dispatch({
         type: 'ADD_TRANSACTION',
-        payload: {
-          id: uuidv4(),
-          type: 'expense',
-          description: `Inventory: ${item.name}`,
-          amount: item.price * item.quantity,
-          date: new Date().toISOString(),
-        },
+        payload: transaction,
       });
     }
     setAddModalOpen(false);

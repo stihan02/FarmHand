@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { Animal, Transaction, Task, Stats, Event, Camp, FarmData, InventoryItem, WeightRecord } from '../types';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
@@ -335,6 +335,7 @@ const FarmContext = createContext<{
 
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(farmReducer, initialState);
+  const [isAddingInventory, setIsAddingInventory] = useState(false);
 
   // Migrate existing animals to include weightRecords property
   useEffect(() => {
@@ -385,8 +386,10 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for inventory
     const inventoryCol = collection(db, 'users', user.uid, 'inventory');
     const unsubInventory = onSnapshot(inventoryCol, snapshot => {
-      const inventory: InventoryItem[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as InventoryItem));
-      dispatch({ type: 'SET_INVENTORY', payload: inventory });
+      if (!isAddingInventory) {
+        const inventory: InventoryItem[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as InventoryItem));
+        dispatch({ type: 'SET_INVENTORY', payload: inventory });
+      }
     });
     // Listen for transactions
     const transactionsCol = collection(db, 'users', user.uid, 'transactions');
@@ -615,6 +618,20 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
   }, [state.inventory, user]);
+
+  // Track inventory additions to prevent Firestore overwrites
+  useEffect(() => {
+    if (state.inventory.length > 0) {
+      const lastItem = state.inventory[state.inventory.length - 1];
+      if (lastItem && lastItem.history && lastItem.history.length > 0) {
+        const lastHistoryItem = lastItem.history[lastItem.history.length - 1];
+        if (lastHistoryItem.reason === 'Initial stock') {
+          setIsAddingInventory(true);
+          setTimeout(() => setIsAddingInventory(false), 2000);
+        }
+      }
+    }
+  }, [state.inventory]);
 
   // Keep other data in localStorage as before
   useEffect(() => {

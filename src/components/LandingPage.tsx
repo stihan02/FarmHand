@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PawPrint, Monitor, Map, Users, Package, Check, Star, ArrowRight, Shield, Clock, Zap, TrendingUp, Globe, Smartphone } from 'lucide-react';
 import { AuthForm } from './Auth/AuthForm';
+import { Onboarding } from './Onboarding';
 
 const features = [
   {
@@ -64,6 +65,7 @@ const screenshots = [
 export const LandingPage: React.FC = () => {
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleAuthClick = (mode: 'signin' | 'signup') => {
     setAuthMode(mode);
@@ -118,20 +120,16 @@ export const LandingPage: React.FC = () => {
       <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-
-
             <h1 className="text-4xl sm:text-6xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
               Farm management
               <span className="block text-blue-600 dark:text-blue-400">made simple</span>
             </h1>
-            
             <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed">
               All-in-one platform to track animals, manage camps, handle inventory, and keep your farm running smoothly—anywhere, anytime.
             </p>
-            
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <button 
-                onClick={() => handleAuthClick('signup')}
+                onClick={() => setShowOnboarding(true)}
                 className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
               >
                 Get Started Free
@@ -144,8 +142,6 @@ export const LandingPage: React.FC = () => {
                 Sign In
               </button>
             </div>
-
-
           </div>
         </div>
       </section>
@@ -227,10 +223,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-
-
-
-
       {/* Final CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-blue-700">
         <div className="max-w-4xl mx-auto text-center">
@@ -242,7 +234,7 @@ export const LandingPage: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
-              onClick={() => handleAuthClick('signup')}
+              onClick={() => setShowOnboarding(true)}
               className="inline-flex items-center justify-center bg-white text-blue-600 font-semibold px-8 py-4 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
             >
               Get Started Free
@@ -275,6 +267,15 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <Onboarding
+          isOpen={showOnboarding}
+          onComplete={() => setShowOnboarding(false)}
+          onSkip={() => setShowOnboarding(false)}
+        />
+      )}
     </div>
   );
 }; 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PawPrint, Users, Map, Package, DollarSign, Check, ArrowRight, ArrowLeft, Home, Calendar, BarChart3, Play } from 'lucide-react';
 import { useFarm } from '../context/FarmContext';
+import { AuthForm } from './Auth/AuthForm';
 
 interface OnboardingProps {
   isOpen: boolean;
@@ -17,26 +18,75 @@ const onboardingSteps = [
     description: 'Let\'s show you what HerdWise can do for your farm with a comprehensive demonstration.'
   },
   {
-    id: 'preview',
-    title: 'See HerdWise in Action',
-    subtitle: 'Complete farm management demonstration',
-    icon: Play,
-    description: 'We\'ll set up a realistic farm with animals, camps, finances, tasks, and inventory to show you everything HerdWise can do.'
+    id: 'feature-animals',
+    title: 'Track Every Animal',
+    subtitle: 'Detailed animal records',
+    screenshot: '/screenshots/animals.jpg',
+    description: 'Track every animal with health records, weight history, and breeding management.'
   },
   {
-    id: 'complete',
-    title: 'Your Demo Farm is Ready! 🚀',
-    subtitle: 'Start exploring HerdWise',
-    icon: Check,
-    description: 'Your comprehensive farm demonstration is set up! Explore all features and see how HerdWise can transform your farm management.'
-  }
+    id: 'feature-finances',
+    title: 'Monitor Finances & Inventory',
+    subtitle: 'Stay on top of your farm',
+    screenshot: '/screenshots/inventory.jpg',
+    description: 'Manage your farm finances and inventory with ease.'
+  },
+  {
+    id: 'feature-tasks',
+    title: 'Plan Tasks & Get Insights',
+    subtitle: 'Stay organized and informed',
+    screenshot: '/screenshots/dashboard.jpg',
+    description: 'Plan daily tasks and get actionable insights from your dashboard.'
+  },
+  {
+    id: 'survey-farm-type',
+    title: 'Tell us about your farm',
+    question: 'What type of farm do you manage?',
+    options: [
+      { label: 'Cattle', icon: '🐄' },
+      { label: 'Sheep', icon: '🐑' },
+      { label: 'Mixed', icon: '🌾' },
+      { label: 'Other', icon: '🏡' },
+    ],
+  },
+  {
+    id: 'survey-animal-count',
+    title: 'A few more details',
+    question: 'How many animals do you have?',
+    options: [
+      { label: '1–10', icon: '🔟' },
+      { label: '11–50', icon: '5️⃣0️⃣' },
+      { label: '51–200', icon: '2️⃣0️⃣0️⃣' },
+      { label: '200+', icon: '🔢' },
+    ],
+  },
+  {
+    id: 'survey-challenge',
+    title: 'Almost done!',
+    question: "What's your biggest challenge?",
+    options: [
+      { label: 'Tracking animals', icon: '📋' },
+      { label: 'Finances', icon: '💰' },
+      { label: 'Inventory', icon: '📦' },
+      { label: 'Tasks', icon: '✅' },
+    ],
+  },
+  {
+    id: 'signup',
+    title: 'Create your free account',
+    subtitle: 'Sign up to get started',
+    description: 'No credit card required. Free for now!',
+  },
 ];
-
-
 
 export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSkip }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const { dispatch } = useFarm();
+  const [surveyAnswers, setSurveyAnswers] = useState({
+    farmType: '',
+    animalCount: '',
+    challenge: '',
+  });
 
   const currentStepData = onboardingSteps[currentStep];
 
@@ -58,10 +108,67 @@ export const Onboarding: React.FC<OnboardingProps> = ({ isOpen, onComplete, onSk
     onComplete();
   };
 
-
+  const handleSurveyAnswer = (stepId: string, value: string) => {
+    if (stepId === 'survey-farm-type') setSurveyAnswers(a => ({ ...a, farmType: value }));
+    if (stepId === 'survey-animal-count') setSurveyAnswers(a => ({ ...a, animalCount: value }));
+    if (stepId === 'survey-challenge') setSurveyAnswers(a => ({ ...a, challenge: value }));
+    handleNext();
+  };
 
   const renderStepContent = () => {
-    switch (currentStepData.id) {
+    const step = currentStepData;
+    if (step.id.startsWith('feature-')) {
+      return (
+        <div className="text-center space-y-6">
+          <h3 className="text-2xl font-bold text-gray-900">{step.title}</h3>
+          <p className="text-gray-600 mb-4">{step.subtitle}</p>
+          <img src={step.screenshot} alt={step.title} className="mx-auto rounded-xl shadow-lg max-h-64 object-contain" />
+          <p className="text-gray-700 mt-4">{step.description}</p>
+        </div>
+      );
+    }
+    if (step.id === 'signup') {
+      return (
+        <div className="text-center space-y-6">
+          <h3 className="text-2xl font-bold text-gray-900">{step.title}</h3>
+          <p className="text-gray-600 mb-4">{step.subtitle}</p>
+          <div className="bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-blue-800 font-medium">{step.description}</p>
+          </div>
+          <div className="max-w-md mx-auto">
+            <AuthForm initialMode="signup" />
+          </div>
+        </div>
+      );
+    }
+    if (step.id.startsWith('survey-')) {
+      if (!('options' in step) || !step.options) return null;
+      return (
+        <div className="text-center space-y-6">
+          <h3 className="text-2xl font-bold text-gray-900">{step.title}</h3>
+          <p className="text-gray-600 mb-4">{step.question}</p>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {step.options.map(option => (
+              <button
+                key={option.label}
+                onClick={() => handleSurveyAnswer(step.id, option.label)}
+                className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-xl p-6 shadow hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all text-lg"
+              >
+                <span className="text-3xl mb-2">{option.icon}</span>
+                <span>{option.label}</span>
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={handleNext}
+            className="text-gray-400 hover:text-gray-600 underline text-sm"
+          >
+            Skip
+          </button>
+        </div>
+      );
+    }
+    switch (step.id) {
       case 'welcome':
         return (
           <div className="text-center space-y-6">

@@ -55,16 +55,18 @@ function AppContent() {
       </div>
     );
   }
-  
-  if (!user) {
-    return <LandingPage />;
-  }
 
   return (
     <FarmProvider>
-      <PWAInstallPrompt />
-      <FeedbackButton />
-      <FarmAppContent />
+      {user ? (
+        <>
+          <PWAInstallPrompt />
+          <FeedbackButton />
+          <FarmAppContent />
+        </>
+      ) : (
+        <LandingPage />
+      )}
     </FarmProvider>
   );
 }

@@ -1,4 +1,6 @@
 import { Animal, Transaction, Task, Camp, InventoryItem } from '../types';
+import { db } from '../firebase';
+import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 interface OfflineAction {
   id: string;
@@ -161,14 +163,34 @@ class OfflineManager {
   }
 
   private async processOfflineAction(action: OfflineAction): Promise<void> {
-    // This would integrate with your Firestore operations
-    // For now, we'll just log the action
-    console.log('Processing offline action:', action);
-
-    // In a real implementation, you would:
-    // 1. Send the action to your backend/Firestore
-    // 2. Handle conflicts and merge strategies
-    // 3. Update the local state accordingly
+    // Map entity to Firestore collection name
+    const entityToCollection: Record<string, string> = {
+      animal: 'animals',
+      transaction: 'transactions',
+      task: 'tasks',
+      camp: 'camps',
+      inventory: 'inventory',
+    };
+    // Assume userId is stored in localStorage (or get from auth context if available)
+    const userId = localStorage.getItem('userId');
+    if (!userId) throw new Error('No userId found for Firestore sync');
+    const colName = entityToCollection[action.entity];
+    if (!colName) throw new Error('Unknown entity type: ' + action.entity);
+    const colRef = collection(db, 'users', userId, colName);
+    try {
+      if (action.type === 'ADD' || action.type === 'UPDATE') {
+        // Remove undefined fields
+        const sanitized = Object.fromEntries(Object.entries(action.data).filter(([_, v]) => v !== undefined));
+        await setDoc(doc(colRef, action.data.id), sanitized);
+        console.log(`[SYNC] ${action.type} ${action.entity} ${action.data.id} to Firestore`);
+      } else if (action.type === 'DELETE') {
+        await deleteDoc(doc(colRef, action.data.id));
+        console.log(`[SYNC] DELETE ${action.entity} ${action.data.id} from Firestore`);
+      }
+    } catch (error) {
+      console.error(`[SYNC ERROR] ${action.type} ${action.entity} ${action.data.id}:`, error);
+      throw error;
+    }
   }
 }
 

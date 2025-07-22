@@ -38,6 +38,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { MobileDashboard } from './components/MobileDashboard';
 import { ResponsiveDashboard } from './components/ResponsiveDashboard';
+import OfflineStatus from './components/OfflineStatus';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory' | 'reports';
 type SubTab = 'finances' | 'inventory' | 'reports' | 'camps' | 'settings';
@@ -697,16 +698,17 @@ function FarmAppContent() {
   );
 }
 
-
-
 function App() {
   return (
-    <AuthProvider>
-      <ErrorBoundary>
-      <AppContent />
-        <Analytics />
-      </ErrorBoundary>
-    </AuthProvider>
+    <>
+      <OfflineStatus />
+      <AuthProvider>
+        <ErrorBoundary>
+          <AppContent />
+          <Analytics />
+        </ErrorBoundary>
+      </AuthProvider>
+    </>
   );
 }
 

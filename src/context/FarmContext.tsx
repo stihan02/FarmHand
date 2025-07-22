@@ -14,6 +14,7 @@ import {
   query,
   where
 } from 'firebase/firestore';
+import offlineManager from '../utils/offlineManager';
 
 interface FarmState {
   animals: Animal[];
@@ -333,9 +334,52 @@ const FarmContext = createContext<{
   dispatch: React.Dispatch<FarmAction>;
 } | null>(null);
 
+// Helper to check online status
+const isOnline = () => navigator.onLine;
+
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(farmReducer, initialState);
   const [isAddingInventory, setIsAddingInventory] = useState(false);
+  const { user } = useAuth();
+
+  // Set userId for offlineManager sync
+  useEffect(() => {
+    if (user?.uid) {
+      localStorage.setItem('userId', user.uid);
+    }
+  }, [user]);
+
+  // On app load, if offline, load cached data
+  useEffect(() => {
+    if (!isOnline()) {
+      (async () => {
+        const animals = await offlineManager.getCachedData('animals') || [];
+        const tasks = await offlineManager.getCachedData('tasks') || [];
+        const camps = await offlineManager.getCachedData('camps') || [];
+        const events = await offlineManager.getCachedData('events') || [];
+        const inventory = await offlineManager.getCachedData('inventory') || [];
+        const transactions = await offlineManager.getCachedData('transactions') || [];
+        dispatch({ type: 'SET_ANIMALS', payload: animals });
+        dispatch({ type: 'SET_TASKS', payload: tasks });
+        dispatch({ type: 'SET_CAMPS', payload: camps });
+        dispatch({ type: 'SET_EVENTS', payload: events });
+        dispatch({ type: 'SET_INVENTORY', payload: inventory });
+        dispatch({ type: 'SET_TRANSACTIONS', payload: transactions });
+      })();
+    }
+  }, []);
+
+  // After fetching from Firestore, cache data for offline use
+  useEffect(() => {
+    if (isOnline()) {
+      offlineManager.cacheData('animals', state.animals);
+      offlineManager.cacheData('tasks', state.tasks);
+      offlineManager.cacheData('camps', state.camps);
+      offlineManager.cacheData('events', state.events);
+      offlineManager.cacheData('inventory', state.inventory);
+      offlineManager.cacheData('transactions', state.transactions);
+    }
+  }, [state.animals, state.tasks, state.camps, state.events, state.inventory, state.transactions]);
 
   // Migrate existing animals to include weightRecords property
   useEffect(() => {
@@ -348,7 +392,6 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       dispatch({ type: 'SET_ANIMALS', payload: migratedAnimals });
     }
   }, [state.animals]);
-  const { user } = useAuth();
 
   // Firestore sync for animals, tasks, camps, events, inventory, transactions
   useEffect(() => {

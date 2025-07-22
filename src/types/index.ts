@@ -162,3 +162,11 @@ export interface InventoryItem {
   notes?: string;
   price?: number;
 }
+
+export interface OfflineAction {
+  id: string;
+  type: 'ADD' | 'UPDATE' | 'DELETE';
+  entity: 'animal' | 'transaction' | 'task' | 'camp' | 'inventory';
+  data: any;
+  timestamp: number;
+}

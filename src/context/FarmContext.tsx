@@ -15,6 +15,7 @@ import {
   where
 } from 'firebase/firestore';
 import offlineManager from '../utils/offlineManager';
+import type { OfflineAction } from '../types';
 
 interface FarmState {
   animals: Animal[];
@@ -451,217 +452,6 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // eslint-disable-next-line
   }, [user]);
 
-  // Sync transaction changes to Firestore
-  useEffect(() => {
-    if (!user) return;
-    const transactionsCol = collection(db, 'users', user.uid, 'transactions');
-    
-    // Get current transactions from Firestore to compare with local state
-    getDocs(transactionsCol).then(snapshot => {
-      const firestoreTransactionIds = snapshot.docs.map(doc => doc.id);
-      const localTransactionIds = state.transactions.map(t => t.id);
-      
-      // Find transactions that exist in Firestore but not in local state (deleted)
-      const deletedTransactionIds = firestoreTransactionIds.filter(id => !localTransactionIds.includes(id));
-      
-      // Delete transactions from Firestore that were removed locally
-      deletedTransactionIds.forEach(async transactionId => {
-        try {
-          await deleteDoc(doc(transactionsCol, transactionId));
-        } catch (error) {
-          console.error('Error deleting transaction from Firestore:', error);
-        }
-      });
-    });
-    
-    // Sync existing transactions
-    state.transactions.forEach(async transaction => {
-      if (transaction.id) {
-        try {
-          await setDoc(doc(transactionsCol, transaction.id), transaction);
-        } catch (error) {
-          console.error('Error syncing transaction to Firestore:', error);
-        }
-      }
-    });
-  }, [state.transactions, user]);
-
-  // Sync task changes to Firestore
-  useEffect(() => {
-    if (!user) return;
-    const tasksCol = collection(db, 'users', user.uid, 'tasks');
-    
-    // Get current tasks from Firestore to compare with local state
-    getDocs(tasksCol).then(snapshot => {
-      const firestoreTaskIds = snapshot.docs.map(doc => doc.id);
-      const localTaskIds = state.tasks.map(t => t.id);
-      
-      // Find tasks that exist in Firestore but not in local state (deleted)
-      const deletedTaskIds = firestoreTaskIds.filter(id => !localTaskIds.includes(id));
-      
-      // Delete tasks from Firestore that were removed locally
-      deletedTaskIds.forEach(async taskId => {
-        try {
-          await deleteDoc(doc(tasksCol, taskId));
-        } catch (error) {
-          console.error('Error deleting task from Firestore:', error);
-        }
-      });
-    });
-    
-    // Sync existing tasks
-    state.tasks.forEach(async task => {
-      if (task.id) {
-        try {
-          await setDoc(doc(tasksCol, task.id), task);
-        } catch (error) {
-          console.error('Error syncing task to Firestore:', error);
-        }
-      }
-    });
-  }, [state.tasks, user]);
-
-  // Sync animal changes to Firestore
-  useEffect(() => {
-    if (!user) return;
-    const animalsCol = collection(db, 'users', user.uid, 'animals');
-    
-    // Get current animals from Firestore to compare with local state
-    getDocs(animalsCol).then(snapshot => {
-      const firestoreAnimalIds = snapshot.docs.map(doc => doc.id);
-      const localAnimalIds = state.animals.map(a => a.id);
-      
-      // Find animals that exist in Firestore but not in local state (deleted)
-      const deletedAnimalIds = firestoreAnimalIds.filter(id => !localAnimalIds.includes(id));
-      
-      // Delete animals from Firestore that were removed locally
-      deletedAnimalIds.forEach(async animalId => {
-        try {
-          await deleteDoc(doc(animalsCol, animalId));
-        } catch (error) {
-          console.error('Error deleting animal from Firestore:', error);
-        }
-      });
-    });
-    
-    // Sync existing animals
-    const syncPromises = state.animals.map(async animal => {
-      if (animal.id) {
-        try {
-          // Remove undefined fields
-          const sanitizedAnimal = Object.fromEntries(
-            Object.entries(animal).filter(([_, v]) => v !== undefined)
-          );
-          await setDoc(doc(animalsCol, animal.id), sanitizedAnimal);
-        } catch (error) {
-          console.error(`Error syncing animal ${animal.id} to Firestore:`, error);
-          // Could add retry logic here or user notification
-        }
-      }
-    });
-    
-    // Wait for all sync operations to complete
-    Promise.allSettled(syncPromises).then(results => {
-      const failed = results.filter(result => result.status === 'rejected');
-      if (failed.length > 0) {
-        console.warn(`${failed.length} animal sync operations failed`);
-      }
-    });
-  }, [state.animals, user]);
-
-  // Sync camp changes to Firestore
-  useEffect(() => {
-    if (!user) return;
-    const campsCol = collection(db, 'users', user.uid, 'camps');
-    
-    // Get current camps from Firestore to compare with local state
-    getDocs(campsCol).then(snapshot => {
-      const firestoreCampIds = snapshot.docs.map(doc => doc.id);
-      const localCampIds = state.camps.map(c => c.id);
-      
-      // Find camps that exist in Firestore but not in local state (deleted)
-      const deletedCampIds = firestoreCampIds.filter(id => !localCampIds.includes(id));
-      
-      // Delete camps from Firestore that were removed locally
-      deletedCampIds.forEach(async campId => {
-        try {
-          await deleteDoc(doc(campsCol, campId));
-        } catch (error) {
-          console.error('Error deleting camp from Firestore:', error);
-        }
-      });
-    });
-    
-    // Sync existing camps
-    state.camps.forEach(async camp => {
-      if (camp.id) {
-        try {
-          const sanitizedCamp = Object.fromEntries(
-            Object.entries(camp).filter(([_, v]) => v !== undefined)
-          );
-          if (sanitizedCamp.geoJson) {
-            console.log('Type of geoJson before save:', typeof sanitizedCamp.geoJson, sanitizedCamp.geoJson);
-            sanitizedCamp.geoJson = JSON.stringify(sanitizedCamp.geoJson);
-          }
-          console.log('Saving camp to Firestore:', sanitizedCamp); // Debug log
-          await setDoc(doc(campsCol, camp.id), sanitizedCamp);
-        } catch (error) {
-          console.error('Error syncing camp to Firestore:', error);
-        }
-      }
-    });
-  }, [state.camps, user]);
-
-  // Sync event changes to Firestore
-  useEffect(() => {
-    if (!user) return;
-    const eventsCol = collection(db, 'users', user.uid, 'events');
-    state.events.forEach(async event => {
-      if (event.id) {
-        try {
-          await setDoc(doc(eventsCol, event.id), event);
-        } catch (error) {
-          console.error('Error syncing event to Firestore:', error);
-        }
-      }
-    });
-  }, [state.events, user]);
-
-  // Sync inventory changes to Firestore
-  useEffect(() => {
-    if (!user) return;
-    const inventoryCol = collection(db, 'users', user.uid, 'inventory');
-    
-    // Get current inventory from Firestore to compare with local state
-    getDocs(inventoryCol).then(snapshot => {
-      const firestoreInventoryIds = snapshot.docs.map(doc => doc.id);
-      const localInventoryIds = state.inventory.map(item => item.id);
-      
-      // Find inventory items that exist in Firestore but not in local state (deleted)
-      const deletedInventoryIds = firestoreInventoryIds.filter(id => !localInventoryIds.includes(id));
-      
-      // Delete inventory items from Firestore that were removed locally
-      deletedInventoryIds.forEach(async itemId => {
-        try {
-          await deleteDoc(doc(inventoryCol, itemId));
-        } catch (error) {
-          console.error('Error deleting inventory item from Firestore:', error);
-        }
-      });
-    });
-    
-    // Sync existing inventory items
-    state.inventory.forEach(async item => {
-      if (item.id) {
-        try {
-          await setDoc(doc(inventoryCol, item.id), item);
-        } catch (error) {
-          console.error('Error syncing inventory item to Firestore:', error);
-        }
-      }
-    });
-  }, [state.inventory, user]);
-
   // Track inventory additions to prevent Firestore overwrites
   useEffect(() => {
     if (state.inventory.length > 0) {
@@ -688,8 +478,79 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [state.transactions, state.events, state.camps, state.inventory]);
 
+  // Helper to update cache after every change
+  const updateCache = (state: FarmState) => {
+    offlineManager.cacheData('animals', state.animals);
+    offlineManager.cacheData('tasks', state.tasks);
+    offlineManager.cacheData('camps', state.camps);
+    offlineManager.cacheData('events', state.events);
+    offlineManager.cacheData('inventory', state.inventory);
+    offlineManager.cacheData('transactions', state.transactions);
+  };
+
+  // Wrap dispatch to always update cache and queue offline actions
+  const wrappedDispatch = (action: FarmAction) => {
+    dispatch(action);
+    setTimeout(() => {
+      updateCache({ ...state });
+      if (!isOnline()) {
+        let offlineAction: Omit<OfflineAction, 'id' | 'timestamp'> | null = null;
+        switch (action.type) {
+          case 'ADD_ANIMAL':
+            offlineAction = { type: 'ADD', entity: 'animal', data: action.payload };
+            break;
+          case 'UPDATE_ANIMAL':
+            offlineAction = { type: 'UPDATE', entity: 'animal', data: action.payload };
+            break;
+          case 'REMOVE_ANIMAL':
+          case 'DELETE_ANIMAL':
+            offlineAction = { type: 'DELETE', entity: 'animal', data: { id: action.payload } };
+            break;
+          case 'ADD_TRANSACTION':
+            offlineAction = { type: 'ADD', entity: 'transaction', data: action.payload };
+            break;
+          case 'REMOVE_TRANSACTION':
+            offlineAction = { type: 'DELETE', entity: 'transaction', data: { id: action.payload } };
+            break;
+          case 'ADD_TASK':
+            offlineAction = { type: 'ADD', entity: 'task', data: action.payload };
+            break;
+          case 'UPDATE_TASK':
+            offlineAction = { type: 'UPDATE', entity: 'task', data: action.payload };
+            break;
+          case 'REMOVE_TASK':
+            offlineAction = { type: 'DELETE', entity: 'task', data: { id: action.payload } };
+            break;
+          case 'ADD_CAMP':
+            offlineAction = { type: 'ADD', entity: 'camp', data: action.payload };
+            break;
+          case 'UPDATE_CAMP':
+            offlineAction = { type: 'UPDATE', entity: 'camp', data: action.payload };
+            break;
+          case 'DELETE_CAMP':
+            offlineAction = { type: 'DELETE', entity: 'camp', data: { id: action.payload } };
+            break;
+          case 'ADD_INVENTORY_ITEM':
+            offlineAction = { type: 'ADD', entity: 'inventory', data: action.payload };
+            break;
+          case 'UPDATE_INVENTORY_ITEM':
+            offlineAction = { type: 'UPDATE', entity: 'inventory', data: action.payload };
+            break;
+          case 'REMOVE_INVENTORY_ITEM':
+            offlineAction = { type: 'DELETE', entity: 'inventory', data: { id: action.payload } };
+            break;
+          default:
+            break;
+        }
+        if (offlineAction) {
+          offlineManager.addOfflineAction(offlineAction).catch(console.error);
+        }
+      }
+    }, 0);
+  };
+
   return (
-    <FarmContext.Provider value={{ state, dispatch }}>
+    <FarmContext.Provider value={{ state, dispatch: wrappedDispatch }}>
       {children}
     </FarmContext.Provider>
   );

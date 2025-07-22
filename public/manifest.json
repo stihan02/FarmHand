@@ -1,30 +1,33 @@
 {
   "name": "HerdWise - Farm Management",
   "short_name": "HerdWise",
-  "description": "Professional farm management app for livestock tracking, finances, and operations",
+  "description": "Complete farm management solution for tracking animals, finances, and operations",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "theme_color": "#4CAF50",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/screenshots/herdwise-logo-192.png",
+      "src": "/screenshots/paw-logo-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/screenshots/herdwise-logo-512.png",
+      "src": "/screenshots/paw-logo-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/screenshots/herdwise-logo-48.png",
+      "src": "/screenshots/paw-logo-48.png",
       "sizes": "48x48",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [

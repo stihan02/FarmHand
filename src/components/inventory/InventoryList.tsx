@@ -5,6 +5,7 @@ import AddEditInventoryModal from './AddEditInventoryModal';
 import { v4 as uuidv4 } from 'uuid';
 import LogUsageModal from './LogUsageModal';
 import { Plus, Edit, Trash2, Package, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
+import { useToast } from '../ToastContext';
 
 const categoryLabels: Record<InventoryItem['category'], string> = {
   medicine: 'Medicine',
@@ -28,6 +29,7 @@ const InventoryList: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [usageModalOpen, setUsageModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const { showToast } = useToast();
 
   const handleAddSave = (item: Omit<InventoryItem, 'id' | 'history' | 'lastUsed'>) => {
     const inventoryItem = {
@@ -81,7 +83,13 @@ const InventoryList: React.FC = () => {
   };
 
   const handleRemoveItem = (itemId: string) => {
-    dispatch({ type: 'REMOVE_INVENTORY_ITEM', payload: itemId });
+    if (!window.confirm('Delete this item?')) return;
+    try {
+      dispatch({ type: 'REMOVE_INVENTORY_ITEM', payload: itemId });
+      showToast({ type: 'success', message: 'Inventory deleted.' });
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to delete inventory.' });
+    }
   };
 
   const handleQuickUsage = (item: InventoryItem, amount: number) => {

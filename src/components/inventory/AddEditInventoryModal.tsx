@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { InventoryItem } from '../../types';
+import { useToast } from '../ToastContext';
 
 const categoryOptions = [
   { value: 'medicine', label: 'Medicine' },
@@ -32,6 +33,7 @@ const emptyForm = {
 const AddEditInventoryModal: React.FC<AddEditInventoryModalProps> = ({ open, onClose, onSave, isEdit, initialData }) => {
   const [form, setForm] = useState({ ...emptyForm, ...initialData });
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (open) {
@@ -45,32 +47,42 @@ const AddEditInventoryModal: React.FC<AddEditInventoryModalProps> = ({ open, onC
     setForm(prev => ({ ...prev, [name]: name === 'quantity' || name === 'lowStockThreshold' || name === 'price' ? Number(value) : value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) {
-      setError('Name is required.');
+      showToast({ type: 'error', message: 'Name is required.' });
       return;
     }
     if (!form.category) {
-      setError('Category is required.');
+      showToast({ type: 'error', message: 'Category is required.' });
       return;
     }
     if (!form.unit.trim()) {
-      setError('Unit is required.');
+      showToast({ type: 'error', message: 'Unit is required.' });
+      return;
+    }
+    if (!form.quantity || isNaN(Number(form.quantity))) {
+      showToast({ type: 'error', message: 'Quantity must be a number.' });
       return;
     }
     setError(null);
-    onSave({
-      name: form.name,
-      category: form.category as InventoryItem['category'],
-      quantity: form.quantity,
-      unit: form.unit,
-      expiryDate: form.expiryDate || undefined,
-      supplier: form.supplier,
-      lowStockThreshold: form.lowStockThreshold,
-      price: form.price,
-      notes: form.notes,
-    });
+    try {
+      onSave({
+        name: form.name,
+        category: form.category as InventoryItem['category'],
+        quantity: form.quantity,
+        unit: form.unit,
+        expiryDate: form.expiryDate || undefined,
+        supplier: form.supplier,
+        lowStockThreshold: form.lowStockThreshold,
+        price: form.price,
+        notes: form.notes,
+      });
+      showToast({ type: 'success', message: 'Inventory added.' });
+      onClose();
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to save inventory.' });
+    }
   };
 
   if (!open) return null;

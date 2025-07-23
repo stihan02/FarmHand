@@ -4,6 +4,7 @@ import { calculateAge, formatDate, formatCurrency, generateId } from '../../util
 import { X, Calendar, DollarSign, AlertTriangle, Plus, MapPin, Scale, BarChart3, FileText } from 'lucide-react';
 import { useFarm } from '../../context/FarmContext';
 import { WeightTrackingModal } from './WeightTrackingModal';
+import { useToast } from '../ToastContext';
 
 interface AnimalModalProps {
   animal: Animal;
@@ -32,6 +33,7 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
   const [editingGrazing, setEditingGrazing] = useState(false);
   const [grazingDate, setGrazingDate] = useState('');
   const [showWeightModal, setShowWeightModal] = useState(false);
+  const { showToast } = useToast();
 
   // Find offspring animals
   const offspring = allAnimals.filter(a => a.motherTag === animal.tagNumber || a.fatherTag === animal.tagNumber);
@@ -46,7 +48,7 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
 
   const handleSell = () => {
     if (!sellData.price || !sellData.date) {
-      alert('Please fill in all required fields');
+      showToast({ type: 'error', message: 'Please fill in all required fields' });
       return;
     }
     
@@ -62,12 +64,13 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
     };
     
     onUpdate(updatedAnimal);
+    showToast({ type: 'success', message: 'Animal marked as sold!' });
     onClose();
   };
 
   const handleMarkDeceased = () => {
     if (!deceasedData.reason || !deceasedData.date) {
-      alert('Please fill in all required fields');
+      showToast({ type: 'error', message: 'Please fill in all required fields' });
       return;
     }
     
@@ -83,6 +86,7 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
     };
     
     onUpdate(updatedAnimal);
+    showToast({ type: 'success', message: 'Animal marked as deceased.' });
     onClose();
   };
 
@@ -98,6 +102,7 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
     };
     
     onUpdate(updatedAnimal);
+    showToast({ type: 'success', message: 'Event added to animal history.' });
     setNewEvent({ description: '' });
   };
 

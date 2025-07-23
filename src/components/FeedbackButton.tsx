@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { MessageSquare, Send, X, CheckCircle } from 'lucide-react';
+import { useToast } from './ToastContext';
 
 interface FeedbackData {
   userId?: string;
@@ -19,6 +20,7 @@ export const FeedbackButton: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const handleSend = async () => {
     if (!feedback.trim()) return;

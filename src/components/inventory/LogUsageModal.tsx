@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { InventoryItem } from '../../types';
 import { Minus, Plus, Trash2, Package, AlertTriangle } from 'lucide-react';
+import { useToast } from '../ToastContext';
 
 interface LogUsageModalProps {
   open: boolean;
@@ -15,6 +16,7 @@ const LogUsageModal: React.FC<LogUsageModalProps> = ({ open, onClose, onSave, on
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [actionType, setActionType] = useState<'usage' | 'add' | 'remove'>('usage');
+  const { showToast } = useToast();
 
   const commonReasons = [
     'Daily feeding',
@@ -37,7 +39,7 @@ const LogUsageModal: React.FC<LogUsageModalProps> = ({ open, onClose, onSave, on
     }
   }, [open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = Number(amount);
     
@@ -72,7 +74,13 @@ const LogUsageModal: React.FC<LogUsageModalProps> = ({ open, onClose, onSave, on
         break;
     }
     
-    onSave(change, reason.trim());
+    try {
+      onSave(change, reason.trim());
+      showToast({ type: 'success', message: 'Usage logged.' });
+      onClose();
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to log usage.' });
+    }
   };
 
   const handleQuickUsage = (quickAmount: number, quickReason: string) => {

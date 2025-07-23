@@ -10,6 +10,7 @@ import {
   onSnapshot,
   Timestamp
 } from 'firebase/firestore';
+import { useToast } from '../ToastContext';
 
 interface MedicalRecord {
   id: string;
@@ -40,6 +41,7 @@ export const AnimalMedicalRecords: React.FC<Props> = ({ animal, userId }) => {
     vet: '',
     notes: ''
   });
+  const { showToast } = useToast();
 
   // Load records from Firestore
   useEffect(() => {
@@ -64,18 +66,29 @@ export const AnimalMedicalRecords: React.FC<Props> = ({ animal, userId }) => {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this record?')) return;
-    await deleteDoc(doc(db, 'users', userId, 'animals', animal.id, 'medicalRecords', id));
+    try {
+      await deleteDoc(doc(db, 'users', userId, 'animals', animal.id, 'medicalRecords', id));
+      showToast({ type: 'success', message: 'Medical record deleted.' });
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to delete record.' });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const colRef = collection(db, 'users', userId, 'animals', animal.id, 'medicalRecords');
-    if (editing) {
-      await updateDoc(doc(colRef, editing.id), form);
-    } else {
-      await addDoc(colRef, form);
+    try {
+      if (editing) {
+        await updateDoc(doc(colRef, editing.id), form);
+        showToast({ type: 'success', message: 'Medical record updated.' });
+      } else {
+        await addDoc(colRef, form);
+        showToast({ type: 'success', message: 'Medical record added.' });
+      }
+      setModalOpen(false);
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to save record.' });
     }
-    setModalOpen(false);
   };
 
   return (

@@ -1,21 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import offlineManager from '../utils/offlineManager';
+import { useToast } from './ToastContext';
 
 const OfflineStatus: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [syncing, setSyncing] = useState(false);
   const [pending, setPending] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {
+      showToast({ type: 'info', message: 'You are back online. Syncing data...' });
+    };
+    const handleOffline = () => {
+      showToast({ type: 'info', message: 'You are offline. Changes will sync when online.' });
+    };
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     let syncingTimeout: NodeJS.Timeout;

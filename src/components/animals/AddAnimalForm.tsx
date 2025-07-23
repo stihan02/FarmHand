@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Animal } from '../../types';
 import { generateId } from '../../utils/helpers';
 import { Plus, X } from 'lucide-react';
+import { useToast } from '../ToastContext';
 
 interface AddAnimalFormProps {
   onAdd: (animal: Animal) => void;
@@ -27,6 +28,7 @@ const emptyForm = {
 export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, onClose, existingTags, camps }) => {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -49,27 +51,33 @@ export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, onClose, ex
   const validateForm = () => {
     if (form.type === 'Other' && !form.otherType.trim()) {
       setError('Please specify the animal type.');
+      showToast({ type: 'error', message: 'Please specify the animal type.' });
       return false;
     }
     if (!form.tagNumber.trim()) {
       setError('Tag number is required.');
+      showToast({ type: 'error', message: 'Tag number is required.' });
       return false;
     }
     if (existingTags.includes(form.tagNumber.trim())) {
       setError('This tag number is already in use.');
+      showToast({ type: 'error', message: 'This tag number is already in use.' });
       return false;
     }
     if (!form.sex) {
       setError('Please select a sex.');
+      showToast({ type: 'error', message: 'Please select a sex.' });
       return false;
     }
     if (!form.birthdate) {
         setError('Please enter a birthdate.');
+        showToast({ type: 'error', message: 'Please enter a birthdate.' });
         return false;
     }
     // Check if birthdate is in the future
     if (form.birthdate && new Date(form.birthdate) > new Date()) {
       setError('Birth date cannot be in the future.');
+      showToast({ type: 'error', message: 'Birth date cannot be in the future.' });
       return false;
     }
     setError(null);
@@ -118,6 +126,7 @@ export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, onClose, ex
       return obj;
     }
     onAdd(removeUndefinedFields(newAnimal));
+    showToast({ type: 'success', message: 'Animal added!' });
     setForm(emptyForm);
     onClose();
   };

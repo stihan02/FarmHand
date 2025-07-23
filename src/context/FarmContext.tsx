@@ -54,7 +54,8 @@ type FarmAction =
   | { type: 'SET_CAMPS'; payload: Camp[] }
   | { type: 'SET_EVENTS'; payload: Event[] }
   | { type: 'SET_INVENTORY'; payload: InventoryItem[] }
-  | { type: 'SET_TRANSACTIONS'; payload: Transaction[] };
+  | { type: 'SET_TRANSACTIONS'; payload: Transaction[] }
+  | { type: 'RESTORE_ALL'; payload: { animals: Animal[]; transactions: Transaction[]; tasks: Task[]; camps: Camp[]; events: Event[]; inventory: InventoryItem[] } };
 
 const calculateStats = (animals: Animal[], transactions: Transaction[], tasks: Task[]): Stats => {
   const active = animals.filter(a => a.status === 'Active').length;
@@ -311,6 +312,21 @@ const farmReducer = (state: FarmState, action: FarmAction): FarmState => {
         ...state,
         transactions: action.payload,
         stats: calculateStats(state.animals, action.payload, state.tasks),
+      };
+      break;
+    case 'RESTORE_ALL':
+      newState = {
+        animals: action.payload.animals || [],
+        transactions: action.payload.transactions || [],
+        tasks: action.payload.tasks || [],
+        camps: action.payload.camps || [],
+        events: action.payload.events || [],
+        inventory: action.payload.inventory || [],
+        stats: calculateStats(
+          action.payload.animals || [],
+          action.payload.transactions || [],
+          action.payload.tasks || []
+        ),
       };
       break;
     default:
@@ -639,3 +655,6 @@ export const useFarm = () => {
   }
   return context;
 };
+
+// Export FarmAction for use in import logic
+export type { FarmAction };

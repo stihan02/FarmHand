@@ -39,6 +39,7 @@ import { WeightTrackingModal } from './WeightTrackingModal';
 import { QuickWeightEntry } from './QuickWeightEntry';
 import * as XLSX from 'xlsx';
 import { isMobile } from 'react-device-detect';
+import { useToast } from '../ToastContext';
 
 interface AnimalTableProps {
   animals: Animal[];
@@ -159,6 +160,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
   const [weightTrackingModalOpen, setWeightTrackingModalOpen] = useState(false);
   const [selectedAnimalForWeight, setSelectedAnimalForWeight] = useState<Animal | null>(null);
   const [quickWeightEntryOpen, setQuickWeightEntryOpen] = useState(false);
+  const { showToast } = useToast();
 
   const typeEmojis: Record<string, string> = {
     Sheep: '🐑',
@@ -177,13 +179,22 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
     
     switch (action) {
       case 'sell':
-        selectedAnimals.forEach(animal => onMarkSold(animal));
+        selectedAnimals.forEach(animal => {
+          onMarkSold(animal);
+          showToast({ type: 'success', message: `Marked ${animal.tagNumber} as sold.` });
+        });
         break;
       case 'deceased':
-        selectedAnimals.forEach(animal => onMarkDeceased(animal));
+        selectedAnimals.forEach(animal => {
+          onMarkDeceased(animal);
+          showToast({ type: 'success', message: `Marked ${animal.tagNumber} as deceased.` });
+        });
         break;
       case 'remove':
-        selectedAnimals.forEach(animal => onRemove(animal));
+        selectedAnimals.forEach(animal => {
+          onRemove(animal);
+          showToast({ type: 'success', message: `Removed ${animal.tagNumber}.` });
+        });
         break;
     }
     
@@ -628,6 +639,7 @@ export const AnimalTable: React.FC<AnimalTableProps> = ({
         history: [{ date: new Date().toISOString().split('T')[0], description: 'Imported' }],
       };
       dispatch({ type: 'ADD_ANIMAL', payload: animal });
+      showToast({ type: 'success', message: `Imported animal ${row.tagNumber}` });
     });
     setImportModalOpen(false);
     setImportPreview([]);

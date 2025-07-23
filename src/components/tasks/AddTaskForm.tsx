@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Task } from '../../types';
 import { generateId } from '../../utils/helpers';
 import { Plus, X } from 'lucide-react';
+import { useToast } from '../ToastContext';
 
 interface AddTaskFormProps {
   onAdd: (task: Task) => void;
@@ -14,6 +15,7 @@ export const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
     dueDate: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { showToast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -34,7 +36,10 @@ export const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      showToast({ type: 'error', message: 'Please fill in all required fields.' });
+      return;
+    }
 
     const newTask: Task = {
       id: generateId(),
@@ -44,6 +49,7 @@ export const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
     };
 
     onAdd(newTask);
+    showToast({ type: 'success', message: 'Task added.' });
     setIsOpen(false);
     setFormData({
       description: '',

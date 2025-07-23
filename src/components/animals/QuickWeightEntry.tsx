@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Animal, WeightRecord } from '../../types';
 import { Plus, X, Scale } from 'lucide-react';
+import { useToast } from '../ToastContext';
 
 interface QuickWeightEntryProps {
   animals: Animal[];
@@ -21,6 +22,7 @@ export const QuickWeightEntry: React.FC<QuickWeightEntryProps> = ({
   const [notes, setNotes] = useState('');
   const [filterType, setFilterType] = useState('All');
   const [filterCamp, setFilterCamp] = useState('All');
+  const { showToast } = useToast();
 
   const activeAnimals = animals.filter(animal => animal.status === 'Active');
   
@@ -48,7 +50,10 @@ export const QuickWeightEntry: React.FC<QuickWeightEntryProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!weight || selectedAnimals.length === 0) return;
+    if (!weight || selectedAnimals.length === 0) {
+      showToast({ type: 'error', message: 'Please enter a weight and select at least one animal.' });
+      return;
+    }
 
     const weightRecord: WeightRecord = {
       date,
@@ -59,7 +64,7 @@ export const QuickWeightEntry: React.FC<QuickWeightEntryProps> = ({
     selectedAnimals.forEach(animalId => {
       onAddWeight(animalId, weightRecord);
     });
-
+    showToast({ type: 'success', message: `Added weight for ${selectedAnimals.length} animal(s).` });
     // Reset form
     setWeight('');
     setNotes('');

@@ -39,6 +39,7 @@ import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { MobileDashboard } from './components/MobileDashboard';
 import { ResponsiveDashboard } from './components/ResponsiveDashboard';
 import OfflineStatus from './components/OfflineStatus';
+import { ToastProvider } from './components/ToastContext';
 
 type ActiveTab = 'dashboard' | 'animals' | 'finances' | 'tasks' | 'camps' | 'inventory' | 'reports';
 type SubTab = 'finances' | 'inventory' | 'reports' | 'camps' | 'settings';
@@ -702,12 +703,14 @@ function App() {
   return (
     <>
       <OfflineStatus />
-      <AuthProvider>
-        <ErrorBoundary>
-          <AppContent />
-          <Analytics />
-        </ErrorBoundary>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <ErrorBoundary>
+            <AppContent />
+            <Analytics />
+          </ErrorBoundary>
+        </AuthProvider>
+      </ToastProvider>
     </>
   );
 }

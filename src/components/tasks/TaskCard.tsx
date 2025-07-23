@@ -2,6 +2,7 @@ import React from 'react';
 import { Task } from '../../types';
 import { formatDate, isOverdue } from '../../utils/helpers';
 import { Clock, CheckCircle, Calendar, Trash2, Bell } from 'lucide-react';
+import { useToast } from '../ToastContext';
 
 interface TaskCardProps {
   task: Task;
@@ -12,6 +13,26 @@ interface TaskCardProps {
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleStatus, onRemove }) => {
   const isCompleted = task.status === 'Completed';
   const overdue = !isCompleted && isOverdue(task.dueDate);
+  const { showToast } = useToast();
+
+  const handleComplete = () => {
+    try {
+      onComplete(task.id);
+      showToast({ type: 'success', message: 'Task completed.' });
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to complete task.' });
+    }
+  };
+
+  const handleDelete = () => {
+    if (!window.confirm('Delete this task?')) return;
+    try {
+      onDelete(task.id);
+      showToast({ type: 'success', message: 'Task deleted.' });
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to delete task.' });
+    }
+  };
 
   return (
     <div className={`bg-white rounded-lg shadow-sm border-2 p-4 hover:shadow-md transition-all duration-200 ${

@@ -116,11 +116,20 @@ export const ReportsExport: React.FC = () => {
 
     try {
       const data = await importData(file);
-      // Confirm with user before overwriting
+      // First confirmation
       if (!window.confirm('This will replace ALL your current farm data with the backup. Continue?')) {
         setIsImporting(false);
         return;
       }
+      // Second, stronger confirmation
+      if (!window.confirm('Are you ABSOLUTELY SURE? This will permanently delete all your current data and cannot be undone. (A backup will be saved automatically before proceeding.)')) {
+        setIsImporting(false);
+        return;
+      }
+      // Automatic backup before destructive restore
+      showToast({ type: 'info', message: 'Exporting automatic backup before restore...' });
+      exportCompleteData();
+      showToast({ type: 'success', message: 'Backup exported. Proceeding with restore.' });
       await restoreAllData(data);
       setImportMessage('Backup restored successfully!');
       showToast({ type: 'success', message: 'Backup restored successfully!' });

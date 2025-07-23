@@ -701,17 +701,15 @@ function FarmAppContent() {
 
 function App() {
   return (
-    <>
+    <ToastProvider>
       <OfflineStatus />
-      <ToastProvider>
-        <AuthProvider>
-          <ErrorBoundary>
-            <AppContent />
-            <Analytics />
-          </ErrorBoundary>
-        </AuthProvider>
-      </ToastProvider>
-    </>
+      <AuthProvider>
+        <ErrorBoundary>
+          <AppContent />
+          <Analytics />
+        </ErrorBoundary>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

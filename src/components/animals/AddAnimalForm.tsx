@@ -103,7 +103,21 @@ export const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ onAdd, onClose, ex
       history: [],
       photoUrl: form.photoUrl || undefined,
     };
-    onAdd(newAnimal);
+    // Remove undefined fields before passing to onAdd
+    function removeUndefinedFields(obj: any): any {
+      if (Array.isArray(obj)) {
+        return obj.map(removeUndefinedFields);
+      } else if (obj && typeof obj === 'object') {
+        return Object.entries(obj)
+          .filter(([_, v]) => v !== undefined)
+          .reduce((acc, [k, v]) => {
+            acc[k] = removeUndefinedFields(v);
+            return acc;
+          }, {} as any);
+      }
+      return obj;
+    }
+    onAdd(removeUndefinedFields(newAnimal));
     setForm(emptyForm);
     onClose();
   };

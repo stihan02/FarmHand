@@ -9,14 +9,100 @@ import {
   importData 
 } from '../utils/helpers';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { db } from '../firebase';
+import { collection, doc, setDoc, deleteDoc, getDocs } from 'firebase/firestore';
+import offlineManager from '../utils/offlineManager';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export const ReportsExport: React.FC = () => {
-  const { state } = useFarm();
+  const { state, dispatch } = useFarm();
   const [isImporting, setIsImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<string>('animals');
+  const [importProgress, setImportProgress] = useState<string | null>(null);
+
+  // Helper to remove undefined fields from an object (deep)
+  function removeUndefinedFields(obj: any): any {
+    if (Array.isArray(obj)) {
+      return obj.map(removeUndefinedFields);
+    } else if (obj && typeof obj === 'object') {
+      return Object.entries(obj)
+        .filter(([_, v]) => v !== undefined)
+        .reduce((acc, [k, v]) => {
+          acc[k] = removeUndefinedFields(v);
+          return acc;
+        }, {} as any);
+    }
+    return obj;
+  }
+
+  // Helper to delete all docs in a collection
+  async function deleteAllDocs(colRef: import('firebase/firestore').CollectionReference) {
+    const snap = await getDocs(colRef);
+    const batchDeletes: Promise<void>[] = [];
+    snap.forEach(docSnap => {
+      batchDeletes.push(deleteDoc(doc(colRef, docSnap.id)));
+    });
+    await Promise.all(batchDeletes);
+  }
+
+  // Full restore: delete all user data, then write imported data
+  async function restoreAllData(backup: {
+    animals: any[];
+    transactions: any[];
+    tasks: any[];
+    camps: any[];
+    events: any[];
+    inventory: any[];
+  }) {
+    setImportProgress('Deleting existing data...');
+    const userId = localStorage.getItem('userId');
+    if (!userId) throw new Error('No userId found');
+    const col = (name: string) => collection(db, 'users', userId, name);
+    // Delete all collections
+    await Promise.all([
+      deleteAllDocs(col('animals')),
+      deleteAllDocs(col('transactions')),
+      deleteAllDocs(col('tasks')),
+      deleteAllDocs(col('camps')),
+      deleteAllDocs(col('events')),
+      deleteAllDocs(col('inventory')),
+    ]);
+    setImportProgress('Restoring backup data...');
+    // Write new data
+    const writeAll = async (colName: string, items: any[]) => {
+      if (!Array.isArray(items)) return;
+      await Promise.all(items.map((item: any) => setDoc(doc(col(colName), item.id), item)));
+    };
+    await Promise.all([
+      writeAll('animals', backup.animals),
+      writeAll('transactions', backup.transactions),
+      writeAll('tasks', backup.tasks),
+      writeAll('camps', backup.camps),
+      writeAll('events', backup.events),
+      writeAll('inventory', backup.inventory),
+    ]);
+    setImportProgress(null);
+    // Update local state
+    dispatch({ type: 'RESTORE_ALL', payload: {
+      animals: backup.animals || [],
+      transactions: backup.transactions || [],
+      tasks: backup.tasks || [],
+      camps: backup.camps || [],
+      events: backup.events || [],
+      inventory: backup.inventory || [],
+    }});
+    // Update offline cache with sanitized data
+    await Promise.all([
+      offlineManager.cacheData('animals', removeUndefinedFields(backup.animals || [])),
+      offlineManager.cacheData('transactions', removeUndefinedFields(backup.transactions || [])),
+      offlineManager.cacheData('tasks', removeUndefinedFields(backup.tasks || [])),
+      offlineManager.cacheData('camps', removeUndefinedFields(backup.camps || [])),
+      offlineManager.cacheData('events', removeUndefinedFields(backup.events || [])),
+      offlineManager.cacheData('inventory', removeUndefinedFields(backup.inventory || [])),
+    ]);
+  }
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -24,14 +110,26 @@ export const ReportsExport: React.FC = () => {
 
     setIsImporting(true);
     setImportMessage(null);
+    setImportProgress(null);
 
     try {
       const data = await importData(file);
-      setImportMessage('Backup file loaded successfully! Note: This is a preview only. Import functionality will be added soon.');
-    } catch (error) {
-      setImportMessage('Error loading backup file. Please check the file format.');
+      // Confirm with user before overwriting
+      if (!window.confirm('This will replace ALL your current farm data with the backup. Continue?')) {
+        setIsImporting(false);
+        return;
+      }
+      await restoreAllData(data);
+      setImportMessage('Backup restored successfully!');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setImportMessage('Error restoring backup: ' + error.message);
+      } else {
+        setImportMessage('Error restoring backup.');
+      }
     } finally {
       setIsImporting(false);
+      setImportProgress(null);
     }
   };
 
@@ -260,6 +358,15 @@ export const ReportsExport: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Reports & Analytics</h2>
           <p className="text-gray-600 dark:text-gray-400">Generate reports and view analytics for your farm</p>
+          {importProgress && <div className="text-blue-600 mt-2">{importProgress}</div>}
+          {importMessage && <div className="text-green-600 mt-2">{importMessage}</div>}
+        </div>
+        <div className="flex items-center gap-2">
+          <label htmlFor="import-backup" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+            <Upload className="h-4 w-4" />
+            Import Backup
+          </label>
+          <input id="import-backup" type="file" accept="application/json" className="hidden" onChange={handleImport} disabled={isImporting} />
         </div>
       </div>
 

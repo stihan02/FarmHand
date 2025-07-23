@@ -12,6 +12,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { db } from '../firebase';
 import { collection, doc, setDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import offlineManager from '../utils/offlineManager';
+import { useToast } from './ToastContext';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -21,6 +22,7 @@ export const ReportsExport: React.FC = () => {
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<string>('animals');
   const [importProgress, setImportProgress] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   // Helper to remove undefined fields from an object (deep)
   function removeUndefinedFields(obj: any): any {
@@ -121,11 +123,14 @@ export const ReportsExport: React.FC = () => {
       }
       await restoreAllData(data);
       setImportMessage('Backup restored successfully!');
+      showToast({ type: 'success', message: 'Backup restored successfully!' });
     } catch (error: unknown) {
       if (error instanceof Error) {
         setImportMessage('Error restoring backup: ' + error.message);
+        showToast({ type: 'error', message: 'Error restoring backup: ' + error.message });
       } else {
         setImportMessage('Error restoring backup.');
+        showToast({ type: 'error', message: 'Error restoring backup.' });
       }
     } finally {
       setIsImporting(false);
@@ -251,6 +256,7 @@ export const ReportsExport: React.FC = () => {
       'Weight Records': (animal.weightRecords || []).length
     }));
     exportToCSV(data, 'animals_report.csv');
+    showToast({ type: 'success', message: 'Animals data exported.' });
   };
 
   const exportWeightData = () => {
@@ -266,10 +272,12 @@ export const ReportsExport: React.FC = () => {
         }))
       );
     exportToCSV(data, 'weight_data.csv');
+    showToast({ type: 'success', message: 'Weight records exported.' });
   };
 
   const exportWeightGrowth = () => {
     exportToCSV(weightGrowthData, 'weight_growth_report.csv');
+    showToast({ type: 'success', message: 'Weight growth report exported.' });
   };
 
   const exportFinances = () => {
@@ -281,6 +289,7 @@ export const ReportsExport: React.FC = () => {
       'Location': transaction.location || ''
     }));
     exportToCSV(data, 'finances_report.csv');
+    showToast({ type: 'success', message: 'Financial data exported.' });
   };
 
   const exportInventory = () => {
@@ -293,6 +302,7 @@ export const ReportsExport: React.FC = () => {
       'Location': ''
     }));
     exportToCSV(data, 'inventory_report.csv');
+    showToast({ type: 'success', message: 'Inventory data exported.' });
   };
 
   const exportCompleteData = () => {
@@ -312,6 +322,7 @@ export const ReportsExport: React.FC = () => {
     a.download = 'farm_data_backup.json';
     a.click();
     window.URL.revokeObjectURL(url);
+    showToast({ type: 'success', message: 'Complete data backup exported.' });
   };
 
   const animalStatusData = [

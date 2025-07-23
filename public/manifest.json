@@ -12,21 +12,21 @@
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/screenshots/paw-logo-192.png",
+      "src": "/screenshots/paw-logo-192.png.jpg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     },
     {
-      "src": "/screenshots/paw-logo-512.png",
+      "src": "/screenshots/paw-logo-512.png.jpg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     },
     {
-      "src": "/screenshots/paw-logo-48.png",
+      "src": "/screenshots/paw-logo-48.png.jpg",
       "sizes": "48x48",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any"
     }
   ],

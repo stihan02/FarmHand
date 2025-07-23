@@ -491,9 +491,70 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Wrap dispatch to always update cache and queue offline actions
   const wrappedDispatch = (action: FarmAction) => {
     dispatch(action);
-    setTimeout(() => {
+    setTimeout(async () => {
       updateCache({ ...state });
-      if (!isOnline()) {
+      const userId = localStorage.getItem('userId');
+      if (!userId) return;
+      // Firestore collections
+      const animalsCol = collection(db, 'users', userId, 'animals');
+      const campsCol = collection(db, 'users', userId, 'camps');
+      const tasksCol = collection(db, 'users', userId, 'tasks');
+      const eventsCol = collection(db, 'users', userId, 'events');
+      const inventoryCol = collection(db, 'users', userId, 'inventory');
+      const transactionsCol = collection(db, 'users', userId, 'transactions');
+      if (isOnline()) {
+        try {
+          switch (action.type) {
+            case 'ADD_ANIMAL':
+            case 'UPDATE_ANIMAL':
+              await setDoc(doc(animalsCol, action.payload.id), action.payload);
+              break;
+            case 'REMOVE_ANIMAL':
+            case 'DELETE_ANIMAL':
+              await deleteDoc(doc(animalsCol, action.payload));
+              break;
+            case 'ADD_CAMP':
+            case 'UPDATE_CAMP':
+              await setDoc(doc(campsCol, action.payload.id), action.payload);
+              break;
+            case 'DELETE_CAMP':
+              await deleteDoc(doc(campsCol, action.payload));
+              break;
+            case 'ADD_TASK':
+            case 'UPDATE_TASK':
+              await setDoc(doc(tasksCol, action.payload.id), action.payload);
+              break;
+            case 'REMOVE_TASK':
+              await deleteDoc(doc(tasksCol, action.payload));
+              break;
+            case 'ADD_EVENT':
+            case 'UPDATE_EVENT':
+              await setDoc(doc(eventsCol, action.payload.id), action.payload);
+              break;
+            case 'REMOVE_EVENT':
+              await deleteDoc(doc(eventsCol, action.payload));
+              break;
+            case 'ADD_INVENTORY_ITEM':
+            case 'UPDATE_INVENTORY_ITEM':
+              await setDoc(doc(inventoryCol, action.payload.id), action.payload);
+              break;
+            case 'REMOVE_INVENTORY_ITEM':
+              await deleteDoc(doc(inventoryCol, action.payload));
+              break;
+            case 'ADD_TRANSACTION':
+              await setDoc(doc(transactionsCol, action.payload.id), action.payload);
+              break;
+            case 'REMOVE_TRANSACTION':
+              await deleteDoc(doc(transactionsCol, action.payload));
+              break;
+            default:
+              break;
+          }
+        } catch (error) {
+          console.error('Error writing to Firestore:', error);
+        }
+      } else {
+        // If offline, queue the action for sync
         let offlineAction: Omit<OfflineAction, 'id' | 'timestamp'> | null = null;
         switch (action.type) {
           case 'ADD_ANIMAL':

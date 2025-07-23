@@ -488,6 +488,21 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     offlineManager.cacheData('transactions', state.transactions);
   };
 
+  // Helper to remove undefined fields from an object (deep)
+  function removeUndefinedFields(obj: any): any {
+    if (Array.isArray(obj)) {
+      return obj.map(removeUndefinedFields);
+    } else if (obj && typeof obj === 'object') {
+      return Object.entries(obj)
+        .filter(([_, v]) => v !== undefined)
+        .reduce((acc, [k, v]) => {
+          acc[k] = removeUndefinedFields(v);
+          return acc;
+        }, {} as any);
+    }
+    return obj;
+  }
+
   // Wrap dispatch to always update cache and queue offline actions
   const wrappedDispatch = (action: FarmAction) => {
     dispatch(action);
@@ -507,7 +522,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
           switch (action.type) {
             case 'ADD_ANIMAL':
             case 'UPDATE_ANIMAL':
-              await setDoc(doc(animalsCol, action.payload.id), action.payload);
+              await setDoc(doc(animalsCol, action.payload.id), removeUndefinedFields(action.payload));
               break;
             case 'REMOVE_ANIMAL':
             case 'DELETE_ANIMAL':
@@ -515,34 +530,34 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
               break;
             case 'ADD_CAMP':
             case 'UPDATE_CAMP':
-              await setDoc(doc(campsCol, action.payload.id), action.payload);
+              await setDoc(doc(campsCol, action.payload.id), removeUndefinedFields(action.payload));
               break;
             case 'DELETE_CAMP':
               await deleteDoc(doc(campsCol, action.payload));
               break;
             case 'ADD_TASK':
             case 'UPDATE_TASK':
-              await setDoc(doc(tasksCol, action.payload.id), action.payload);
+              await setDoc(doc(tasksCol, action.payload.id), removeUndefinedFields(action.payload));
               break;
             case 'REMOVE_TASK':
               await deleteDoc(doc(tasksCol, action.payload));
               break;
             case 'ADD_EVENT':
             case 'UPDATE_EVENT':
-              await setDoc(doc(eventsCol, action.payload.id), action.payload);
+              await setDoc(doc(eventsCol, action.payload.id), removeUndefinedFields(action.payload));
               break;
             case 'REMOVE_EVENT':
               await deleteDoc(doc(eventsCol, action.payload));
               break;
             case 'ADD_INVENTORY_ITEM':
             case 'UPDATE_INVENTORY_ITEM':
-              await setDoc(doc(inventoryCol, action.payload.id), action.payload);
+              await setDoc(doc(inventoryCol, action.payload.id), removeUndefinedFields(action.payload));
               break;
             case 'REMOVE_INVENTORY_ITEM':
               await deleteDoc(doc(inventoryCol, action.payload));
               break;
             case 'ADD_TRANSACTION':
-              await setDoc(doc(transactionsCol, action.payload.id), action.payload);
+              await setDoc(doc(transactionsCol, action.payload.id), removeUndefinedFields(action.payload));
               break;
             case 'REMOVE_TRANSACTION':
               await deleteDoc(doc(transactionsCol, action.payload));

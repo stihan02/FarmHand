@@ -95,7 +95,7 @@ export const AnimalReportsModal: React.FC<AnimalReportsModalProps> = ({
 
         {/* Navigation Tabs */}
         <div className="border-b border-gray-200 bg-gray-50">
-          <nav className="flex overflow-x-auto whitespace-nowrap px-8">
+          <nav className="flex overflow-x-auto whitespace-nowrap px-8 scrollbar-hide">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'weight', label: 'Weight Analytics', icon: Scale },
@@ -105,14 +105,15 @@ export const AnimalReportsModal: React.FC<AnimalReportsModalProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveReport(tab.id as any)}
-                className={`px-6 py-4 text-sm font-semibold border-b-2 transition-all duration-200 flex items-center space-x-2 ${
+                className={`px-4 sm:px-6 py-4 text-sm font-semibold border-b-2 transition-all duration-200 flex items-center space-x-2 flex-shrink-0 ${
                   activeReport === tab.id
                     ? 'border-purple-500 text-purple-600 bg-white'
                     : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-white/50'
                 }`}
               >
                 <tab.icon className="h-4 w-4" />
-                <span>{tab.label}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
               </button>
             ))}
           </nav>

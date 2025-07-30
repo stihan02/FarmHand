@@ -77,7 +77,7 @@ function FarmAppContent() {
   const { state, dispatch } = useFarm();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>('reports');
+  const [activeSubTab, setActiveSubTab] = useState<SubTab>('finances');
   const [inventoryView, setInventoryView] = useState<'list' | 'reports'>('list');
   const [isBulkUpdate, setIsBulkUpdate] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -125,16 +125,19 @@ function FarmAppContent() {
       const updatedAnimal = { ...animal, ...updates };
       dispatch({ type: 'UPDATE_ANIMAL', payload: updatedAnimal });
       
-      if (updatedAnimal.status === 'Sold' && updatedAnimal.salePrice) {
-      const transaction: Transaction = {
-        id: Date.now().toString(),
+      // Create transaction when animal is sold
+      if (updatedAnimal.status === 'Sold' && updatedAnimal.salePrice && updatedAnimal.salePrice > 0) {
+        console.log('Creating transaction for sold animal:', updatedAnimal);
+        const transaction: Transaction = {
+          id: Date.now().toString(),
           type: 'income',
           description: `Sold ${updatedAnimal.type} (Tag: ${updatedAnimal.tagNumber})`,
           amount: updatedAnimal.salePrice,
           date: updatedAnimal.saleDate || new Date().toISOString().split('T')[0],
-        location: ''
-      };
-      dispatch({ type: 'ADD_TRANSACTION', payload: transaction });
+          location: ''
+        };
+        console.log('Transaction created:', transaction);
+        dispatch({ type: 'ADD_TRANSACTION', payload: transaction });
       }
     }
   };

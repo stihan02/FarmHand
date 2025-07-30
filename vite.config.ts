@@ -10,8 +10,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       manifest: require('./public/manifest.json'),
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,json}'],
-        navigateFallback: '/index.html',
+        globPatterns: ['**/*.{js,css,ico,png,svg,jpg,jpeg,json}'],
+        navigateFallback: null,
+        skipWaiting: true,
+        clientsClaim: true
       },
       devOptions: {
         enabled: true

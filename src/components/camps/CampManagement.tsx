@@ -29,12 +29,14 @@ export const CampManagement: React.FC<CampManagementProps> = ({ camps, onAddCamp
 
   // Add a new camp from the map (polygon)
   const handleAddCamp = (camp: any) => {
+    console.log('CampManagement: Adding camp:', camp);
     const newCamp: Camp = {
-      id: uuidv4(),
+      id: camp.id || uuidv4(), // Use provided ID or generate new one
       name: camp.name,
       geoJson: camp.geoJson,
       animals: [],
     };
+    console.log('CampManagement: Created camp object:', newCamp);
     onAddCamp(newCamp);
   };
 

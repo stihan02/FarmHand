@@ -177,6 +177,7 @@ function FarmAppContent() {
   };
 
   const addCamp = (camp: Camp) => {
+    console.log('App: Adding camp:', camp);
     dispatch({ type: 'ADD_CAMP', payload: camp });
   };
 

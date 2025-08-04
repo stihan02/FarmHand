@@ -428,13 +428,16 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for camps
     const campsCol = collection(db, 'users', user.uid, 'camps');
     const unsubCamps = onSnapshot(campsCol, snapshot => {
+      console.log('Loading camps from Firestore:', snapshot.docs.length, 'camps');
       const camps: Camp[] = snapshot.docs.map(doc => {
         const data = doc.data();
+        console.log('Camp data:', doc.id, data);
         if (typeof data.geoJson === 'string') {
           data.geoJson = JSON.parse(data.geoJson);
         }
         return { ...data, id: doc.id } as Camp;
       });
+      console.log('Processed camps:', camps);
       dispatch({ type: 'SET_CAMPS', payload: camps });
     });
     // Listen for events
@@ -546,7 +549,9 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
               break;
             case 'ADD_CAMP':
             case 'UPDATE_CAMP':
+              console.log('Saving camp to Firestore:', action.payload);
               await setDoc(doc(campsCol, action.payload.id), removeUndefinedFields(action.payload));
+              console.log('Camp saved successfully');
               break;
             case 'DELETE_CAMP':
               await deleteDoc(doc(campsCol, action.payload));

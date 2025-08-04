@@ -147,7 +147,9 @@ export const CampMap: React.FC<CampMapProps & { onAnimalClick?: (animal: Animal)
       const name = prompt('Enter camp name:');
       if (name && name.trim() !== '') {
         const latlngs = e.layer.getLatLngs()[0].map((latlng: any) => [latlng.lng, latlng.lat]);
+        console.log('Creating new camp:', name, latlngs);
         props.onAddCamp({
+          id: Date.now().toString(), // Add unique ID
           name: name.trim(),
           geoJson: {
             type: 'Feature',

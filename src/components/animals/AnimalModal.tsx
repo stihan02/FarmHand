@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Animal, HistoryEvent } from '../../types';
 import { calculateAge, formatDate, formatCurrency, generateId } from '../../utils/helpers';
-import { X, Calendar, DollarSign, AlertTriangle, Plus, MapPin, Scale, BarChart3, FileText } from 'lucide-react';
+import { X, Calendar, DollarSign, AlertTriangle, Plus, MapPin, Scale, BarChart3, FileText, Edit } from 'lucide-react';
 import { useFarm } from '../../context/FarmContext';
 import { WeightTrackingModal } from './WeightTrackingModal';
+import { EditAnimalForm } from './EditAnimalForm';
 import { useToast } from '../ToastContext';
 
 interface AnimalModalProps {
@@ -33,6 +34,7 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
   const [editingGrazing, setEditingGrazing] = useState(false);
   const [grazingDate, setGrazingDate] = useState('');
   const [showWeightModal, setShowWeightModal] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const { showToast } = useToast();
 
   // Find offspring animals
@@ -149,12 +151,22 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
                   <p className="text-emerald-100 font-medium">{animal.type} • {animal.sex === 'M' ? 'Male' : 'Female'}</p>
                 </div>
               </div>
-              <button
-                onClick={onClose}
-                className="p-3 hover:bg-white/20 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-              >
-                <X className="h-6 w-6" />
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowEditForm(true)}
+                  className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 backdrop-blur-sm"
+                  title="Edit Animal"
+                >
+                  <Edit className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={onClose}
+                  className="p-3 hover:bg-white/20 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+                  title="Close"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -605,6 +617,17 @@ export const AnimalModal: React.FC<AnimalModalProps> = ({ animal, onClose, onUpd
             </form>
           </div>
         </div>
+      )}
+
+      {/* Edit Animal Form */}
+      {showEditForm && (
+        <EditAnimalForm
+          animal={animal}
+          onUpdate={onUpdate}
+          onClose={() => setShowEditForm(false)}
+          existingTags={allAnimals.map(a => a.tagNumber)}
+          camps={state.camps.map(c => ({ id: c.id, name: c.name }))}
+        />
       )}
     </>
   );

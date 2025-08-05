@@ -534,19 +534,18 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Special handling for camp data to ensure geoJson is properly serialized
   function prepareCampForFirestore(camp: Camp): any {
     console.log('Original camp data:', camp);
-    const cleanedCamp = removeUndefinedFields(camp);
-    console.log('After removeUndefinedFields:', cleanedCamp);
     
-    // Convert geoJson to string to avoid Firestore nested array issue
-    if (cleanedCamp.geoJson) {
-      cleanedCamp.geoJson = JSON.stringify(cleanedCamp.geoJson);
-      console.log('geoJson converted to string:', cleanedCamp.geoJson);
-    }
+    // Create a clean camp object without nested arrays
+    const cleanCamp = {
+      id: camp.id,
+      name: camp.name,
+      geoJson: camp.geoJson ? JSON.stringify(camp.geoJson) : null,
+      animals: [], // Empty array instead of Animal objects
+      recommendedStockingRates: camp.recommendedStockingRates || {}
+    };
     
-    // Also check for any other nested arrays in the camp object
-    const finalCamp = JSON.parse(JSON.stringify(cleanedCamp));
-    console.log('Final camp for Firestore:', finalCamp);
-    return finalCamp;
+    console.log('Clean camp for Firestore:', cleanCamp);
+    return cleanCamp;
   }
 
   // Wrap dispatch to always update cache and queue offline actions

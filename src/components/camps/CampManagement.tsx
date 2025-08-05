@@ -34,7 +34,8 @@ export const CampManagement: React.FC<CampManagementProps> = ({ camps, onAddCamp
       id: camp.id || uuidv4(), // Use provided ID or generate new one
       name: camp.name,
       geoJson: camp.geoJson,
-      animals: [],
+      animals: [], // Initialize empty animals array
+      recommendedStockingRates: {}, // Initialize empty stocking rates
     };
     console.log('CampManagement: Created camp object:', newCamp);
     onAddCamp(newCamp);

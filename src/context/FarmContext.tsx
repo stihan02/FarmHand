@@ -534,6 +534,10 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Special handling for camp data to ensure geoJson is properly serialized
   function prepareCampForFirestore(camp: Camp): any {
     const cleanedCamp = removeUndefinedFields(camp);
+    // Convert geoJson to string to avoid Firestore nested array issue
+    if (cleanedCamp.geoJson) {
+      cleanedCamp.geoJson = JSON.stringify(cleanedCamp.geoJson);
+    }
     console.log('Prepared camp for Firestore:', cleanedCamp);
     return cleanedCamp;
   }

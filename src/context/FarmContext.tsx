@@ -389,6 +389,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // After fetching from Firestore, cache data for offline use
   useEffect(() => {
     if (isOnline()) {
+      console.log('Caching camps for offline use:', state.camps);
       offlineManager.cacheData('animals', state.animals);
       offlineManager.cacheData('tasks', state.tasks);
       offlineManager.cacheData('camps', state.camps);
@@ -432,12 +433,20 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const camps: Camp[] = snapshot.docs.map(doc => {
         const data = doc.data();
         console.log('Camp data:', doc.id, data);
+        // Ensure geoJson is properly parsed
         if (typeof data.geoJson === 'string') {
-          data.geoJson = JSON.parse(data.geoJson);
+          try {
+            data.geoJson = JSON.parse(data.geoJson);
+          } catch (error) {
+            console.error('Error parsing geoJson for camp:', doc.id, error);
+            data.geoJson = null;
+          }
         }
-        return { ...data, id: doc.id } as Camp;
+        const camp = { ...data, id: doc.id } as Camp;
+        console.log('Processed camp:', camp);
+        return camp;
       });
-      console.log('Processed camps:', camps);
+      console.log('All processed camps:', camps);
       dispatch({ type: 'SET_CAMPS', payload: camps });
     });
     // Listen for events
@@ -522,6 +531,13 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return obj;
   }
 
+  // Special handling for camp data to ensure geoJson is properly serialized
+  function prepareCampForFirestore(camp: Camp): any {
+    const cleanedCamp = removeUndefinedFields(camp);
+    console.log('Prepared camp for Firestore:', cleanedCamp);
+    return cleanedCamp;
+  }
+
   // Wrap dispatch to always update cache and queue offline actions
   const wrappedDispatch = (action: FarmAction) => {
     dispatch(action);
@@ -550,8 +566,12 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
             case 'ADD_CAMP':
             case 'UPDATE_CAMP':
               console.log('Saving camp to Firestore:', action.payload);
-              await setDoc(doc(campsCol, action.payload.id), removeUndefinedFields(action.payload));
-              console.log('Camp saved successfully');
+              try {
+                await setDoc(doc(campsCol, action.payload.id), prepareCampForFirestore(action.payload));
+                console.log('Camp saved successfully to Firestore');
+              } catch (error) {
+                console.error('Error saving camp to Firestore:', error);
+              }
               break;
             case 'DELETE_CAMP':
               await deleteDoc(doc(campsCol, action.payload));

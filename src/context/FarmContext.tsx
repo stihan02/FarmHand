@@ -577,7 +577,10 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
             case 'UPDATE_CAMP':
               console.log('Saving camp to Firestore:', action.payload);
               try {
-                await setDoc(doc(campsCol, action.payload.id), prepareCampForFirestore(action.payload));
+                console.log('About to call prepareCampForFirestore');
+                const preparedCamp = prepareCampForFirestore(action.payload);
+                console.log('Camp prepared, about to save to Firestore');
+                await setDoc(doc(campsCol, action.payload.id), preparedCamp);
                 console.log('Camp saved successfully to Firestore');
               } catch (error) {
                 console.error('Error saving camp to Firestore:', error);

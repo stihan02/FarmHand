@@ -426,29 +426,10 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const tasks: Task[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Task));
       dispatch({ type: 'SET_TASKS', payload: tasks });
     });
-    // Listen for camps
-    const campsCol = collection(db, 'users', user.uid, 'camps');
-    const unsubCamps = onSnapshot(campsCol, snapshot => {
-      console.log('Loading camps from Firestore:', snapshot.docs.length, 'camps');
-      const camps: Camp[] = snapshot.docs.map(doc => {
-        const data = doc.data();
-        console.log('Camp data:', doc.id, data);
-        // Ensure geoJson is properly parsed
-        if (typeof data.geoJson === 'string') {
-          try {
-            data.geoJson = JSON.parse(data.geoJson);
-          } catch (error) {
-            console.error('Error parsing geoJson for camp:', doc.id, error);
-            data.geoJson = null;
-          }
-        }
-        const camp = { ...data, id: doc.id } as Camp;
-        console.log('Processed camp:', camp);
-        return camp;
-      });
-      console.log('All processed camps:', camps);
-      dispatch({ type: 'SET_CAMPS', payload: camps });
-    });
+    // Listen for camps (temporarily disabled due to Firestore nested array issue)
+    // Camps will be loaded from local storage only
+    console.log('Firestore camp loading disabled - using local storage only');
+    const unsubCamps = () => {}; // No-op function
     // Listen for events
     const eventsCol = collection(db, 'users', user.uid, 'events');
     const unsubEvents = onSnapshot(eventsCol, snapshot => {
@@ -575,19 +556,14 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
               break;
             case 'ADD_CAMP':
             case 'UPDATE_CAMP':
-              console.log('Saving camp to Firestore:', action.payload);
-              try {
-                console.log('About to call prepareCampForFirestore');
-                const preparedCamp = prepareCampForFirestore(action.payload);
-                console.log('Camp prepared, about to save to Firestore');
-                await setDoc(doc(campsCol, action.payload.id), preparedCamp);
-                console.log('Camp saved successfully to Firestore');
-              } catch (error) {
-                console.error('Error saving camp to Firestore:', error);
-              }
+              console.log('Saving camp to local storage only (Firestore sync disabled)');
+              // Temporarily disable Firestore sync for camps due to nested array issue
+              // Camps will be saved to local storage and work offline
               break;
             case 'DELETE_CAMP':
-              await deleteDoc(doc(campsCol, action.payload));
+              console.log('Deleting camp from local storage only (Firestore sync disabled)');
+              // Temporarily disable Firestore sync for camps due to nested array issue
+              // Camps will be deleted from local storage and work offline
               break;
             case 'ADD_TASK':
             case 'UPDATE_TASK':

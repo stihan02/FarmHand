@@ -163,6 +163,12 @@ class OfflineManager {
   }
 
   private async processOfflineAction(action: OfflineAction): Promise<void> {
+    // Temporarily disable camp syncing due to Firestore nested array issue
+    if (action.entity === 'camp') {
+      console.log(`[SYNC SKIPPED] Camp sync disabled: ${action.type} ${action.entity} ${action.data.id}`);
+      return;
+    }
+    
     // Map entity to Firestore collection name
     const entityToCollection: Record<string, string> = {
       animal: 'animals',
